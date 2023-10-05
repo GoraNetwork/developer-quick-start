@@ -7,26 +7,8 @@ example_const_app = bk.Application("ExampleConst")
 
 # Opt in to Gora token asset, necessary to make oracle requests.
 @example_const_app.external
-def opt_in_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
-    return pt.Seq(
-        pt.Assert(pt.Txn.sender() == pt.Global.creator_address()),
-        pt.InnerTxnBuilder.Begin(),
-        pt.InnerTxnBuilder.SetFields({
-            pt.TxnField.type_enum: pt.TxnType.AssetTransfer,
-            pt.TxnField.xfer_asset: pt.Txn.assets[0],
-            pt.TxnField.asset_receiver: pt.Global.current_application_address(),
-            pt.TxnField.asset_amount: pt.Int(0)
-        }),
-        pt.InnerTxnBuilder.Submit(),
-        pt.InnerTxnBuilder.Begin(),
-        (app_id := pt.abi.Uint64()).set(3),
-        pt.InnerTxnBuilder.SetFields({
-            pt.TxnField.type_enum: pt.TxnType.ApplicationCall,
-            pt.TxnField.application_id: pt.Txn.applications[1],
-            pt.TxnField.on_completion: pt.OnComplete.OptIn,
-        }),
-        pt.InnerTxnBuilder.Submit(),
-    )
+def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
+    return gora.pt_init_gora()
 
 # Query a test oracle source that always returns 1.
 @example_const_app.external
@@ -124,10 +106,10 @@ def demo() -> None:
     print("Done, txn ID, app ID, app address:", txid, app_id, app_addr)
 
     # Supply the app with GORA tokens and ALGO.
-    print("Opting the app into GORA main app and token...")
+    print("Initializing app for GORA...")
     app_client.fund(1000000)
     app_client.call(
-        method=opt_in_gora,
+        method=init_gora,
         token_ref=gora.token_asset_id,
         main_app_ref=gora.main_app_id,
     )
@@ -146,7 +128,7 @@ def demo() -> None:
         foreign_apps=[ gora.main_app_id ],
         boxes=[ (gora.main_app_id, box_name) ],
     )
-    print("Done, result:", result.return_value)
+    print("Done, txn ID:", result.tx_id)
 
 
 if __name__ == "__main__":
