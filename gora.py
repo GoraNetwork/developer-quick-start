@@ -18,6 +18,7 @@ def get_env(var, defl=None):
 # submit oracle requests. Depends on the Algorand network (mainnet, testnet, etc.)
 token_asset_id = int(get_env("GORA_TOKEN_ASSET_ID"))
 main_app_id = int(get_env("GORA_MAIN_APP_ID"))
+main_app_addr = asdk.logic.get_application_address(main_app_id)
 gora_token_deposit_amount = int(get_env("GORA_TOKEN_DEPOSIT_AMOUNT", 10_000_000_000))
 gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_000))
 
@@ -139,4 +140,10 @@ def pt_init_gora():
             pt.TxnField.on_completion: pt.OnComplete.OptIn,
         }),
         pt.InnerTxnBuilder.Submit(),
+    )
+
+def pt_auth_dest_call():
+    return pt.Seq(
+        (caller_creator_addr := pt.AppParam.creator(pt.Global.caller_app_id())),
+        pt.Assert(caller_creator_addr.value() == pt.Bytes(main_app_addr))
     )

@@ -15,6 +15,7 @@ def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
 def handle_oracle_const(resp_type: pt.abi.Uint64,
                         resp_body_bytes: pt.abi.DynamicBytes):
     return pt.Seq(
+        gora.pt_auth_dest_call(),
         pt.Assert(resp_type.get() == pt.Int(1)),
         (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
         resp_body.oracle_value.store_into(
