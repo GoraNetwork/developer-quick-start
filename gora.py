@@ -52,11 +52,11 @@ class DestinationSpec(pt.abi.NamedTuple):
 # Oracle response body.
 class ResponseBody(pt.abi.NamedTuple):
     request_id: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
-    requester_address: pt.abi.Field[pt.abi.Address]
-    oracle_return_value: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
+    requester_addr: pt.abi.Field[pt.abi.Address]
+    oracle_value: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
     user_data: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
     error_code: pt.abi.Field[pt.abi.Uint32]
-    source_failures: pt.abi.Field[pt.abi.Uint64]
+    source_errors: pt.abi.Field[pt.abi.Uint64]
 
 #TODO explain
 class BoxType(pt.abi.NamedTuple):
