@@ -10,6 +10,19 @@ example_const_app = bk.Application("ExampleConst")
 def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
     return gora.pt_init_gora()
 
+# Response handler.
+@example_const_app.external
+def handle_oracle_const(resp_type: pt.abi.Uint64,
+                        resp_body_bytes: pt.abi.DynamicBytes):
+    return pt.Seq(
+        pt.Assert(resp_type.get() == pt.Int(1)),
+        (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
+        resp_body.oracle_value.store_into(
+            oracle_value := pt.abi.make(pt.abi.DynamicArray[pt.abi.Byte])
+        ),
+        pt.App.globalPut(pt.Bytes("res"), oracle_value.encode()),
+    )
+
 # Query a test oracle source that always returns 1.
 @example_const_app.external
 def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
