@@ -28,38 +28,45 @@ def handle_oracle_const(resp_type: pt.abi.Uint64,
 def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
 
     return pt.Seq(
-        # Oracle requests can be of different types, see documentation for details.
+        # Type of oracle request, see Gora documentation for available types.
         (request_type := pt.abi.Uint64()).set(pt.Int(1)),
 
-        # The test oracle source that we are querying has the ID of 1.
+        # ID of the oracle source being queried. For this basic test, we are
+        # querying a special test source #1.
         (source_id := pt.abi.Uint32()).set(pt.Int(1)),
 
-        # This source takes no arguments, so set empty list as the argument array.
+        # Arguments to pass to the source. This one takes no arguments.
         (source_args := pt.abi.make(pt.abi.DynamicArray[pt.abi.DynamicBytes])).set([]),
 
-        # Don't care about maximum response age.
+        # Maximum age in seconds an oracle source response can have before being
+        # discarded as outdated. Set to 0 if not using this feature.
         (max_age := pt.abi.Uint64()).set(pt.Int(0)),
 
-        # Package the above into an oracle source specification.
+        # Source specification is the structure combining the above elements.
         (source_spec := pt.abi.make(gora.SourceSpec)).set(
             source_id, source_args, max_age
         ),
 
-        # Gora supports multiple source specifications per request, but here we
-        # use one. Hence we must put it as the only element into an array.
+        # Source specification array needs to be built from it albeit with a
+        # single element because Gora supports multiple sources per request.
         (source_spec_arr := pt.abi.make(pt.abi.DynamicArray[gora.SourceSpec])).set(
             [ source_spec ]
         ),
 
-        # No aggregation of results is required. Anyhow, it is only applicable
-        # when using multiple sources.
+        # Result aggregation method. Set to 0 if unused, see Gora documentation
+        # for other valid values.
         (aggr_method := pt.abi.Uint32()).set(pt.Int(0)),
 
-        # Any byte string can be passed to the destination smart contract along
-        # with an oracle request. To keep this example simple, we pass nothing.
+        # Arbitrary user-supplied byte string passed to the destination smart
+        # contract along with the response to this oracle request. Can be used,
+        # for example, to instruct the destination method on how to handle the
+        # response. To keep this example simple, we pass nothing.
         (user_data := pt.abi.DynamicBytes()).set([]),
 
-        # Create a request specification based on the above.
+        # Request specification is the structure describing an oracle request of
+        # the chosen type which we now build based on the data above. It then
+        # needs to be packed as bytes because specifications for different
+        # request types must be handled transparrently ABI type differences.
         (request_spec := pt.abi.make(gora.RequestSpec)).set(
             source_spec_arr, aggr_method, user_data
         ),
@@ -67,11 +74,12 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
             request_spec.encode()
         ),
 
-        # Any smart contract can be called when returning an oracle response,
-        # but for simplicity we will call the same one, just a different method.
+        # Destination smart contract specification, consisting of its app ID and
+        # ABI method selector. For simplicity, we will use a method in this same
+        # app that makes the request, but it can be any smart contract app.
         (dest_app_id := pt.abi.Uint64()).set(pt.Global.current_application_id()),
         (dest_method_sig := pt.abi.DynamicBytes()).set(
-            pt.Bytes("oracle_response" + gora.response_method_spec)
+            pt.Bytes("handle_oracle_const" + gora.response_method_spec)
         ),
         (destination := pt.abi.make(gora.DestinationSpec)).set(
             dest_app_id, dest_method_sig
@@ -80,13 +88,14 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
             destination.encode()
         ),
 
-        # TODO explain or remove these args
+        # Algorand object references for Gora to include with call to the
+        # destination smart contract. In this basic case none are needed.
         (asset_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
         (account_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Address])).set([]),
         (app_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
         (box_refs := pt.abi.make(pt.abi.DynamicArray[gora.BoxType])).set([]),
 
-        # Call Gora main smart contract to submit the oracle request.
+        # Call Gora main smart contract and submit the oracle request.
         pt.InnerTxnBuilder.Begin(),
         pt.InnerTxnBuilder.MethodCall(
             app_id=pt.Int(gora.main_app_id),
@@ -102,7 +111,7 @@ def demo() -> None:
     # Get Algorand API client instance to talk to local Algorand sandbox node.
     algod_client = bk.localnet.get_algod_client()
 
-    # Get a local account to use for asset creation and tests.
+    # Pick a local account to use for asset creation and tests.
     account = bk.localnet.get_accounts()[0]
     print("Using local account", account.address)
 
@@ -126,8 +135,6 @@ def demo() -> None:
         token_ref=gora.token_asset_id,
         main_app_ref=gora.main_app_id,
     )
-    print("Done")
-
     gora.setup_algo_deposit(algod_client, account, app_addr)
     gora.setup_token_deposit(algod_client, account, app_addr)
 
