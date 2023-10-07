@@ -21,7 +21,7 @@ def handle_oracle_const(resp_type: pt.abi.Uint64,
         resp_body.oracle_value.store_into(
             oracle_value := pt.abi.make(pt.abi.DynamicArray[pt.abi.Byte])
         ),
-        pt.App.globalPut(pt.Bytes("res"), oracle_value.encode()),
+        pt.App.globalPut(pt.Bytes("oracle_result"), oracle_value.encode()),
     )
 
 # Query a test oracle source that always returns 1.
@@ -141,6 +141,9 @@ def demo() -> None:
 
     req_key = uuid.uuid4().bytes;
     box_name = gora.get_ora_box_name(req_key, app_addr)
+
+    # Reset global storage variable that will be populated by the destination app.
+    pt.App.globalPut(pt.Bytes("oracle_result"), pt.Bytes("")),
 
     print("Calling the app...")
     result = app_client.call(
