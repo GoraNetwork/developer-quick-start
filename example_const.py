@@ -71,23 +71,15 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
         (request_spec := pt.abi.make(gora.RequestSpec)).set(
             source_spec_arr, aggr_method, user_data
         ),
-        (request_spec_packed := pt.abi.DynamicBytes()).set(
-            request_spec.encode()
-        ),
+        (request_spec_packed := pt.abi.DynamicBytes()).set(request_spec.encode()),
 
         # Destination smart contract specification, consisting of its app ID and
         # ABI method selector. For simplicity, we will use a method in this same
         # app that makes the request, but it can be any smart contract app.
         (dest_app_id := pt.abi.Uint64()).set(pt.Global.current_application_id()),
-        (dest_method_sig := pt.abi.DynamicBytes()).set(
-            pt.Bytes("handle_oracle_const" + gora.response_method_spec)
-        ),
-        (destination := pt.abi.make(gora.DestinationSpec)).set(
-            dest_app_id, dest_method_sig
-        ),
-        (destination_packed := pt.abi.DynamicBytes()).set(
-            destination.encode()
-        ),
+        (dest_method_sig := pt.abi.DynamicBytes()).set(pt.Bytes("handle_oracle_const")),
+        (dest := pt.abi.make(gora.DestinationSpec)).set(dest_app_id, dest_method_sig),
+        (dest_packed := pt.abi.DynamicBytes()).set(dest.encode()),
 
         # Algorand object references for Gora to include with call to the
         # destination smart contract. In this basic case none are needed.
@@ -101,8 +93,8 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
         pt.InnerTxnBuilder.MethodCall(
             app_id=pt.Int(gora.main_app_id),
             method_signature="request" + gora.request_method_spec,
-            args=[ request_spec_packed, destination_packed, request_type,
-                   request_key, app_refs, asset_refs, account_refs, box_refs ],
+            args=[ request_spec_packed, dest_packed, request_type, request_key,
+                   app_refs, asset_refs, account_refs, box_refs ],
         ),
         pt.InnerTxnBuilder.Submit(),
     )
