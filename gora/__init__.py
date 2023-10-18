@@ -33,7 +33,6 @@ gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_00
 gora_main_abi_spec = open("./main-contract.json", "r").read()
 gora_main_app = asdk.abi.Contract.from_json(gora_main_abi_spec)
 
-# TODO remove the below and use gora_main_app above instead
 # ABI method argument specs to build signatures for oracle method calls.
 request_method_spec = "(byte[],byte[],uint64,byte[],uint64[],uint64[],address[],(byte[],uint64)[])void"
 response_method_spec = "(uint32[],byte[])void"
@@ -67,7 +66,7 @@ class ResponseBody(pt.abi.NamedTuple):
     error_code: pt.abi.Field[pt.abi.Uint32]
     source_errors: pt.abi.Field[pt.abi.Uint64]
 
-#TODO explain
+# Storage box specification.
 class BoxType(pt.abi.NamedTuple):
     key: pt.abi.Field[pt.abi.DynamicBytes]
     app_id: pt.abi.Field[pt.abi.Uint64]
