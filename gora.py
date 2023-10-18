@@ -87,7 +87,6 @@ def setup_algo_deposit(algod_client, account, app_addr):
         method_args=[ signed_payment_txn, app_addr ]
     )
     composer.execute(algod_client, 4)
-    print("Done")
 
 def setup_token_deposit(algod_client, account, app_addr):
     print("Setting up token deposit...")
@@ -113,7 +112,6 @@ def setup_token_deposit(algod_client, account, app_addr):
         method_args=[ signed_transfer_txn, token_asset_id, app_addr ]
     )
     composer.execute(algod_client, 4)
-    print("Done")
 
 def get_ora_box_name(req_key, addr):
     pub_key = asdk.encoding.decode_address(addr)
