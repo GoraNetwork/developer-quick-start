@@ -1,9 +1,17 @@
 import pyteal as pt
 import beaker as bk
-import gora
 import uuid
+import base64
+import re
+import gora
 
-example_const_app = bk.Application("ExampleConst")
+class ExampleConstState:
+    last_oracle_value = bk.GlobalStateValue(
+        stack_type=pt.TealType.bytes,
+        descr="Last oracle value received"
+    )
+
+example_const_app = bk.Application("ExampleConst", state=ExampleConstState)
 
 # Opt in to Gora token asset, necessary to make oracle requests.
 @example_const_app.external
@@ -12,16 +20,16 @@ def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
 
 # Response handler.
 @example_const_app.external
-def handle_oracle_const(resp_type: pt.abi.Uint64,
+def handle_oracle_const(resp_type: pt.abi.Uint32,
                         resp_body_bytes: pt.abi.DynamicBytes):
     return pt.Seq(
         gora.pt_auth_dest_call(),
-        pt.Assert(resp_type.get() == pt.Int(1)),
+        gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
         (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
         resp_body.oracle_value.store_into(
             oracle_value := pt.abi.make(pt.abi.DynamicArray[pt.abi.Byte])
         ),
-        pt.App.globalPut(pt.Bytes("oracle_result"), oracle_value.encode()),
+        example_const_app.state.last_oracle_value.set(oracle_value.encode()),
     )
 
 # Query a test oracle source that always returns 1.
@@ -137,15 +145,20 @@ def demo() -> None:
     # Reset global storage variable that will be populated by the destination app.
     pt.App.globalPut(pt.Bytes("oracle_result"), pt.Bytes("")),
 
-    print("Calling the app...")
+    print("Calling the app")
     result = app_client.call(
         method=query_oracle_const,
         request_key=req_key,
         foreign_apps=[ gora.main_app_id ],
         boxes=[ (gora.main_app_id, box_name) ],
     )
-    print("Done, txn ID:", result.tx_id)
 
+    print("Confirmed in round:", result.tx_info["confirmed-round"])
+    print("Txn ID:", result.tx_id)
+
+    inner_logs = [ base64.b64decode(x) for x in result.tx_info["inner-txns"][0]["logs"] ]
+    request_id_msg = next(x for x in inner_logs if re.match(br"^req_id-", x))
+    print("Request ID:", base64.b32encode(request_id_msg[7:]))
 
 if __name__ == "__main__":
     demo()

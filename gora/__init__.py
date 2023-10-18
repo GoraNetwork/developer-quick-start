@@ -1,9 +1,12 @@
+import sys
 import os
 import pyteal as pt
 import beaker as bk
 import algosdk as asdk
 import hashlib
 import uuid
+import base64
+from .inline import InlineAssembly
 
 def get_env(var, defl=None):
     val = os.environ.get(var)
@@ -18,7 +21,12 @@ def get_env(var, defl=None):
 # submit oracle requests. Depends on the Algorand network (mainnet, testnet, etc.)
 token_asset_id = int(get_env("GORA_TOKEN_ASSET_ID"))
 main_app_id = int(get_env("GORA_MAIN_APP_ID"))
+
 main_app_addr = asdk.logic.get_application_address(main_app_id)
+main_app_addr_bin = base64.b32decode(main_app_addr + "======")
+main_app_addr_short_bin = main_app_addr_bin[:-4] # remove CRC
+
+print(main_app_addr)
 gora_token_deposit_amount = int(get_env("GORA_TOKEN_DEPOSIT_AMOUNT", 10_000_000_000))
 gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_000))
 
@@ -143,5 +151,16 @@ def pt_init_gora():
 def pt_auth_dest_call():
     return pt.Seq(
         (caller_creator_addr := pt.AppParam.creator(pt.Global.caller_app_id())),
-        pt.Assert(caller_creator_addr.value() == pt.Bytes(main_app_addr))
+        pt_smart_assert(caller_creator_addr.value() == pt.Bytes(main_app_addr_short_bin)),
+    )
+
+
+"""
+Assert with a number to indentify it in API error message. The message will be:
+"shr arg too big, (1000000%d)" where in "%d" is the line number.
+"""
+def pt_smart_assert(cond):
+    err_line = sys._getframe().f_back.f_lineno # calling line number
+    return pt.If(pt.Not(cond)).Then(
+        InlineAssembly("int 0\nint {}\nshr\n".format(1000000 + err_line))
     )
