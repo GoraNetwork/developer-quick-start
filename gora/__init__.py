@@ -6,6 +6,8 @@ import algosdk as asdk
 import hashlib
 import uuid
 import base64
+
+from typing import Literal as L
 from .inline import InlineAssembly
 
 def get_env(var, defl=None):
@@ -59,7 +61,7 @@ class DestinationSpec(pt.abi.NamedTuple):
 
 # Oracle response body.
 class ResponseBody(pt.abi.NamedTuple):
-    request_id: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
+    request_id: pt.abi.Field[pt.abi.StaticBytes[L[32]]]
     requester_addr: pt.abi.Field[pt.abi.Address]
     oracle_value: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
     user_data: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
