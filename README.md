@@ -60,7 +60,12 @@ To start setting up development node, run: `goracle dev-init`. This would
 clone Gora smart contracts from testnet to your local Algorand Sandbox
 network and create a config file for your development node. By default,
 this file is called `~/.goracle_dev`. Now you should be ready to start your
-development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev goracle docker-start`
+development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev goracle docker-start`.
+
+This will form a single-node Gora network for local end-to-end testing of your
+applications. This node will pick up your local Gora requests and process them
+like a production network would, logging various debugging information to
+standard output.
 
 ## Example app
 
@@ -79,3 +84,17 @@ point, replacing Python subclassing with decorators as means of adding custom
 functionality. If you are using additional Beaker documentation or examples,
 make sure that they are current.
 
+To run the example app, you must to point it to your local Gora network via
+environment variables. Check output of your Gora development node for messages
+like: `Main smart contract: "<number>"`, `Token asset ID: "<number>"`.
+These contain values defining your local Gora development network. Now you can
+use them to execute the example app:
+`GORA_TOKEN_ASSET_ID=<token asset ID> GORA_MAIN_APP_ID=<main app ID> python example_const.py`
+
+Once the app compiles and executes, the node should pick up its request, showing
+a message like `Processing oracle request "<request ID>"`. When a message starting
+with `Submitted <number> vote(s) on request "<request ID>"`appears, it means
+that the request has been processed and the destination method app should be
+called with the response. Algorand [Dapp Flow](https://app.dappflow.org/explorer/home)
+web app can be used to trace applicable transactions and confirm that the
+destination call has been made.
