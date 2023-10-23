@@ -7,10 +7,10 @@ application using Gora decentralized oracle. Here you will find:
  * Step-by-step instructions on how to deploy and test it
  * Info on commands and tools for troubleshooting your Gora applications
 
-All instructions are written and tested for Linux. Mac users have reported
-success with most of the tools used here and are welcome to follow this guide
-at their own risk. The reader must be comfortable with using command-line
-tools, the Algorand blockchain and Python programming.
+All instructions here are written and tested for Linux. Mac users have reported
+success with most of the tools used here and are welcome to follow this guide at
+their own risk. The reader must be comfortable with using command-line tools,
+the Algorand blockchain and Python programming.
 
 ## Prerequisites and environment
 
@@ -28,33 +28,47 @@ The following Algorand software must be installed and functioning:
  * [Algorand Sandbox](https://github.com/algorand/sandbox "Algorand Sandbox GitHub page").
  * [Algorand Beaker framework](https://github.com/algorand-devrel/beaker "Algorand Beaker GitHub page")
 
-You may use Algokit (Algorand's simplified environment setup tool) to bootstrap
-and manage the above. Algorand Sandbox must run a local Algorand network. This
-is its default mode of operation, but make sure not to start it on testnet or
-devnet unintentionally.
+Refer to documentation at the above links for download and installation
+instructions. Altertatively, you may use Algokit, Algorand's simplified
+environment setup toolkit that will handle that for you. Algorand Sandbox must
+run a local Algorand network which is the default, but make sure not to start it
+on testnet or devnet Algorand networks unintentionally.
 
-There are two modes in which Algorand Sandbox can run a local network: with
-transactions confirmed on time period basis, or with instant confirmation of
-each transaction in its own round. The second mode speeds up development cycle
-significantly, and is therefore recommended. To start it, run `sandbox up dev`
-in sandbox directory. Be advised that Algorand Indexer may not work in this
-mode, but it is not required for Gora development.
+**Warning*** By default, the Algorand Sandbox runs its local network,
+automatically confirming new transactions on time period basis. This is
+currently the recommended mode for Gora development. The "dev" mode of Algorand
+Sandbox which confirms every transaction instantly and places it in its own
+round is currently not supported. It is incompatible with security mechanisms
+of production Gora smart contracts.
 
 To check that an Algorand development node is up and running on your host, execute:
 `curl http://localhost:4001/versions`. You should get a JSON response with
-version information fields, including `"genesis_id":"sandnet-v1"`.
+version information fields, including: `"genesis_id":"sandnet-v1"`.
 
 ### Gora software
 
-Both Gora smart contracts and Gora node are managed with Gora CLI tool.
-It is available for download here: https://download.goracle.io/latest-release/
-Once downloaded, it must be made executable by running `chmod +x ./goracle`. 
+Both Gora smart contracts and Gora node are managed with Gora CLI tool,
+available here: https://download.goracle.io/latest-release/ Once downloaded, it
+must be made executable by running `chmod +x ./goracle`.  Running the CLI tool
+without arguments will list available commands. To get help on a command, run
+`goracle help <command name>`, for example: `goracle help docker-start`.
 
-Running the CLI tool without arguments will list available commands. To get help on a
-command, run `goracle help <command name>`, for example: `goracle help docker-start`.
+**Warning** Do NOT follow normal Gora node setup process for live network
+operators when setting up a development node.
 
-**Warning** Do NOT follow normal Gora node setup process for node operators, it
-is essentially different.
+To start setting up development node, you must select a master Algorand
+account. This account be used for managing Gora assets on your local Algorand
+network. Normally, it is the first pre-configured account of the Algorand
+sandbox. To find out its address, run in the sandbox directory: `./sandbox goal
+account list`. The first address in the list is then needs to be substituted
+into the following command: `./sandbox goal account export -a <address>`. In
+response you should get an authentication mnemonic for the account, a 25-word
+English phrase.
+
+Now you can initialize your Gora development environment by running:
+`goracle dev-init --master-mnem='<mnemonic>'` where mnemonic is the one found
+in the previous step.
+
 
 ### Gora node
 
