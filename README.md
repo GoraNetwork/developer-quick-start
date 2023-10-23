@@ -56,21 +56,11 @@ without arguments will list available commands. To get help on a command, run
 **Warning** Do NOT follow normal Gora node setup process for live network
 operators when setting up a development node.
 
-To start setting up development node, you must select a master Algorand
-account. This account be used for managing Gora assets on your local Algorand
-network. Normally, it is the first pre-configured account of the Algorand
-sandbox. To find out its address, run in the sandbox directory: `./sandbox goal
-account list`. The first address in the list is then needs to be substituted
-into the following command: `./sandbox goal account export -a <address>`. In
-response you should get an authentication mnemonic for the account, a 25-word
-English phrase.
-
-Now you can initialize your Gora development environment by running:
-`goracle dev-init --master-mnem='<mnemonic>'` where mnemonic is the one found
-in the previous step.
-
-
-### Gora node
+To start setting up development node, run: `goracle dev-init`. This would
+clone Gora smart contracts from testnet to your local Algorand Sandbox
+network and create a config file for your development node. By default,
+this file is called `~/.goracle_dev`. Now you should be ready to start your
+development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev goracle docker-start`
 
 ## Example app
 
@@ -89,6 +79,3 @@ point, replacing Python subclassing with decorators as means of adding custom
 functionality. If you are using additional Beaker documentation or examples,
 make sure that they are current.
 
-## Deployment and testing
-
-## Troubleshooting
