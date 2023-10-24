@@ -34,7 +34,7 @@ environment setup toolkit that will handle that for you. Algorand Sandbox must
 run a local Algorand network which is the default, but make sure not to start it
 on testnet or devnet Algorand networks unintentionally.
 
-**Warning*** By default, the Algorand Sandbox runs its local network,
+**Warning!*** By default, the Algorand Sandbox runs its local network,
 automatically confirming new transactions on time period basis. This is
 currently the recommended mode for Gora development. The "dev" mode of Algorand
 Sandbox which confirms every transaction instantly and places it in its own
@@ -53,7 +53,7 @@ then make it executable by running `chmod +x ./goracle`.  Running the CLI tool
 without arguments will list available commands. To get help on a command, run
 `./goracle help <command name>`, for example: `./goracle help docker-start`.
 
-**Warning** Do NOT follow normal Gora node setup process for live network
+**Warning!** Do NOT follow normal Gora node setup process for live network
 operators when setting up a development node.
 
 To set up your development node, run: `GORACLE_CONFIG_FILE= ./goracle dev-init`.
@@ -67,7 +67,7 @@ applications. This node will pick up your local Gora requests and process them
 like a production network would, logging various debugging information to
 standard output.
 
-**Warning** do not stop the node. You must have your development node up and
+**Warning!** do not stop the node. You must have your development node up and
 running to process requests from the example app or from any Gora-enabled apps
 which you will be developing locally.
 
