@@ -47,11 +47,11 @@ version information fields, including: `"genesis_id":"sandnet-v1"`.
 
 ### Gora software
 
-Both Gora smart contracts and Gora node are managed with Gora CLI tool,
-available here: https://download.goracle.io/latest-release/ Once downloaded, it
-must be made executable by running `chmod +x ./goracle`.  Running the CLI tool
-without arguments will list available commands. To get help on a command, run
-`goracle help <command name>`, for example: `goracle help docker-start`.
+Both Gora smart contracts and Gora node are managed with Gora CLI tool.
+Download it [here](https://download.goracle.io/latest-dev/linux/goracle "Gora CLI tool Linux binary"), then make it  executable by running `chmod +x ./goracle`.
+Running the CLI tool without arguments will list available commands. To get help
+on a command, run `goracle help <command name>`, for example: `goracle help
+docker-start`.
 
 **Warning** Do NOT follow normal Gora node setup process for live network
 operators when setting up a development node.
