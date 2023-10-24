@@ -99,6 +99,11 @@ Once the app compiles and executes, the node should pick up its request, showing
 a message like `Processing oracle request "<request ID>"`. When a message starting
 with `Submitted <number> vote(s) on request "<request ID>"`appears, it means
 that the request has been processed and the destination method app should be
-called with the response. Algorand [Dapp Flow](https://app.dappflow.org/explorer/home)
-web app can be used to trace applicable transactions and confirm that the
-destination call has been made.
+called with the response.
+
+Algorand [Dapp Flow](https://app.dappflow.org/explorer/home) web app can be used
+to trace applicable transactions and confirm that the destination call has been
+made and values updated.
+
+**Warning!** You may get an error message from Dapp Flow about "disabled parameter:
+application-id". This is a minor issue and should not affect operation.
