@@ -67,6 +67,10 @@ applications. This node will pick up your local Gora requests and process them
 like a production network would, logging various debugging information to
 standard output.
 
+**Warning** do not stop the node. You must have your development node up and
+running to process requests from the example app or from any Gora-enabled apps
+which you will be developing locally.
+
 ## Example app
 
 The example app [example_const.py](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_const.py "Example app on Github")
