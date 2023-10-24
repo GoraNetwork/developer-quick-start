@@ -56,9 +56,9 @@ docker-start`.
 **Warning** Do NOT follow normal Gora node setup process for live network
 operators when setting up a development node.
 
-To start setting up development node, run: `goracle dev-init`. This would
-clone Gora smart contracts from testnet to your local Algorand Sandbox
-network and create a config file for your development node. By default,
+To set up your development node, run: `GORACLE_CONFIG_FILE= goracle dev-init`.
+This would clone Gora smart contracts from testnet to your local Algorand
+Sandbox network and create a config file for your development node. By default,
 this file is called `~/.goracle_dev`. Now you should be ready to start your
 development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev goracle docker-start`.
 
