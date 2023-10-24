@@ -48,19 +48,19 @@ version information fields, including: `"genesis_id":"sandnet-v1"`.
 ### Gora software
 
 Both Gora smart contracts and Gora node are managed with Gora CLI tool.
-Download it [here](https://download.goracle.io/latest-dev/linux/goracle "Gora CLI tool Linux binary"), then make it  executable by running `chmod +x ./goracle`.
-Running the CLI tool without arguments will list available commands. To get help
-on a command, run `goracle help <command name>`, for example: `goracle help
-docker-start`.
+Download it [here](https://download.goracle.io/latest-dev/linux/goracle "Gora CLI tool Linux binary"),
+then make it executable by running `chmod +x ./goracle`.  Running the CLI tool
+without arguments will list available commands. To get help on a command, run
+`./goracle help <command name>`, for example: `./goracle help docker-start`.
 
 **Warning** Do NOT follow normal Gora node setup process for live network
 operators when setting up a development node.
 
-To set up your development node, run: `GORACLE_CONFIG_FILE= goracle dev-init`.
+To set up your development node, run: `GORACLE_CONFIG_FILE= ./goracle dev-init`.
 This would clone Gora smart contracts from testnet to your local Algorand
 Sandbox network and create a config file for your development node. By default,
 this file is called `~/.goracle_dev`. Now you should be ready to start your
-development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev goracle docker-start`.
+development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev ./goracle docker-start`.
 
 This will form a single-node Gora network for local end-to-end testing of your
 applications. This node will pick up your local Gora requests and process them
