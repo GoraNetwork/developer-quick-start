@@ -93,7 +93,7 @@ environment variables. Check output of your Gora development node for messages
 like: `Main smart contract: "<number>"`, `Token asset ID: "<number>"`.
 These contain values defining your local Gora development network. Now you can
 use them to execute the example app:
-`GORA_TOKEN_ASSET_ID=<token asset ID> GORA_MAIN_APP_ID=<main app ID> python example_const.py`
+`GORA_TOKEN_ASSET_ID=<token asset ID> GORA_MAIN_APP_ID=<main app ID> python3 example_const.py`
 
 Once the app compiles and executes, the node should pick up its request, showing
 a message like `Processing oracle request "<request ID>"`. When a message starting
