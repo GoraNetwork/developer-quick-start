@@ -29,7 +29,7 @@ The following Algorand software must be installed and functioning:
  * [Algorand Beaker framework](https://github.com/algorand-devrel/beaker "Algorand Beaker GitHub page")
 
 Refer to documentation at the above links for download and installation
-instructions. Altertatively, you may use Algokit, Algorand's simplified
+instructions. Alternatively, you may use Algokit, Algorand's simplified
 environment setup toolkit that will handle that for you. Algorand Sandbox must
 run a local Algorand network which is the default, but make sure not to start it
 on testnet or devnet Algorand networks unintentionally.
