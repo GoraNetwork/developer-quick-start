@@ -191,7 +191,6 @@ def pt_auth_dest_call():
         pt_smart_assert(caller_creator_addr.value() == pt.Bytes(main_app_addr_short_bin)),
     )
 
-
 """
 Assert with a number to indentify it in API error message. The message will be:
 "shr arg too big, (1000000%d)" where in "%d" is the line number.
@@ -200,4 +199,27 @@ def pt_smart_assert(cond):
     err_line = sys._getframe().f_back.f_lineno # calling line number
     return pt.If(pt.Not(cond)).Then(
         InlineAssembly("int 0\nint {}\nshr\n".format(1000000 + err_line))
+    )
+
+@pt.Subroutine(pt.TealType.anytype)
+def pt_make_src_spec_url(url, value_expr, value_type, round_to, timestamp_expr,
+                         max_age, auth_url, gateway_url):
+    return pt.Seq(
+        (url_abi := pt.abi.DynamicBytes()).set(url),
+        (auth_url_abi := pt.abi.DynamicBytes()).set(auth_url),
+        (value_expr_abi := pt.abi.DynamicBytes()).set(value_expr),
+        (timestamp_expr_abi := pt.abi.DynamicBytes()).set(timestamp_expr),
+        (max_age_abi := pt.abi.Uint32()).set(max_age),
+        (value_type_abi := pt.abi.Uint8()).set(value_type),
+        (round_to_abi := pt.abi.Uint8()).set(round_to),
+        (gateway_url_abi := pt.abi.DynamicBytes()).set(gateway_url),
+        (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+        (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+        (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
+        (reserved_3_abi := pt.abi.Uint32()).set(pt.Int(0)),
+        (result := pt.abi.make(SourceSpecUrl)).set(
+            url, auth_url, value_expr, timestamp_expr, max_age, value_type,
+            round_to, gateway_url, reserved_0, reserved_1, reserved_2, reserved_3,
+        ),
+        pt.Return(result),
     )
