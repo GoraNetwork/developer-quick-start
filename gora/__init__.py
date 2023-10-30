@@ -73,6 +73,9 @@ class BoxType(pt.abi.NamedTuple):
     key: pt.abi.Field[pt.abi.DynamicBytes]
     app_id: pt.abi.Field[pt.abi.Uint64]
 
+"""
+Setup an Algo deposit with Gora for a given account and app.
+"""
 def setup_algo_deposit(algod_client, account, app_addr):
     print("Setting up Algo deposit...")
     composer = asdk.atomic_transaction_composer.AtomicTransactionComposer()
@@ -97,6 +100,9 @@ def setup_algo_deposit(algod_client, account, app_addr):
     )
     composer.execute(algod_client, 4)
 
+"""
+Setup a token deposit with Gora for a given account and app.
+"""
 def setup_token_deposit(algod_client, account, app_addr):
     print("Setting up token deposit...")
     composer = asdk.atomic_transaction_composer.AtomicTransactionComposer()
@@ -122,12 +128,18 @@ def setup_token_deposit(algod_client, account, app_addr):
     )
     composer.execute(algod_client, 4)
 
+"""
+Return Algorand storage box name for a Gora request key and requester address.
+"""
 def get_ora_box_name(req_key, addr):
     pub_key = asdk.encoding.decode_address(addr)
     hash_src = pub_key + req_key
     name_hash = hashlib.new("sha512_256", hash_src)
     return name_hash.digest()
 
+"""
+Initialize current Pyteal app for Gora use.
+"""
 def pt_init_gora():
     return pt.Seq(
         pt.Assert(pt.Txn.sender() == pt.Global.creator_address()),
@@ -149,6 +161,9 @@ def pt_init_gora():
         pt.InnerTxnBuilder.Submit(),
     )
 
+"""
+Confirm that current call to a destination app is coming from Gora.
+"""
 def pt_auth_dest_call():
     return pt.Seq(
         (caller_creator_addr := pt.AppParam.creator(pt.Global.caller_app_id())),
