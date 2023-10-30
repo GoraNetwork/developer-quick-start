@@ -48,9 +48,30 @@ class SourceSpec(pt.abi.NamedTuple):
     source_arg_list: pt.abi.Field[pt.abi.DynamicArray[pt.abi.DynamicBytes]]
     max_age: pt.abi.Field[pt.abi.Uint64]
 
+# Oracle source specification for General URL (type #2) requests.
+class SourceSpecUrl(pt.abi.NamedTuple):
+    url: pt.abi.Field[pt.abi.DynamicBytes]
+    auth_url: pt.abi.Field[pt.abi.DynamicBytes]
+    value_expr: pt.abi.Field[pt.abi.DynamicBytes]
+    timestamp_expr: pt.abi.Field[pt.abi.DynamicBytes]
+    max_age: pt.abi.Field[pt.abi.Uint32]
+    value_type: pt.abi.Field[pt.abi.Uint8]
+    round_to: pt.abi.Field[pt.abi.Uint8]
+    gateway_url: pt.abi.Field[pt.abi.DynamicBytes]
+    reserved_0: pt.abi.Field[pt.abi.DynamicBytes]
+    reserved_1: pt.abi.Field[pt.abi.DynamicBytes]
+    reserved_2: pt.abi.Field[pt.abi.Uint32]
+    reserved_3: pt.abi.Field[pt.abi.Uint32]
+
 # Oracle request specification.
 class RequestSpec(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpec]]
+    aggregation: pt.abi.Field[pt.abi.Uint32]
+    user_data: pt.abi.Field[pt.abi.DynamicBytes]
+
+# Oracle General URL (type #2) request specification.
+class RequestSpecUrl(pt.abi.NamedTuple):
+    source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpecUrl]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
