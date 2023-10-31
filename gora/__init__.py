@@ -200,8 +200,11 @@ def pt_smart_assert(cond):
         InlineAssembly("int 0\nint {}\nshr\n".format(1000000 + err_line))
     )
 
-def query_oracle_urls(request_key, dest_app, dest_method, spec_params, aggr = 0,
-                      user_data = "") -> pt.Expr:
+"""
+Make a General URL request with one or more URL sources.
+"""
+def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
+                      aggr = 0, user_data = "") -> pt.Expr:
 
     spec_defaults = {
         "timestamp_expr": "",
@@ -210,63 +213,63 @@ def query_oracle_urls(request_key, dest_app, dest_method, spec_params, aggr = 0,
         "auth_url": "",
         "gateway_url": "",
     }
-    spec = spec_defaults | spec_params
 
-    return pt.Seq(
+    result = [
         (request_type := pt.abi.Uint64()).set(pt.Int(2)),
-
-        (url_abi := pt.abi.DynamicBytes()).set(
-            pt.Bytes(spec["url"])),
-        (value_expr_abi := pt.abi.DynamicBytes()).set(
-            pt.Bytes(spec["value_expr"])),
-
-        (timestamp_expr_abi := pt.abi.DynamicBytes()).set(
-            pt.Bytes(spec["timestamp_expr"])),
-        (auth_url_abi := pt.abi.DynamicBytes()).set(
-            pt.Bytes(spec["auth_url"])),
-        (gateway_url_abi := pt.abi.DynamicBytes()).set(
-            pt.Bytes(spec["gateway_url"])),
-
-        (max_age_abi := pt.abi.Uint32()).set(pt.Int(spec["max_age"])),
-        (value_type_abi := pt.abi.Uint8()).set(pt.Int(spec["value_type"])),
-        (round_to_abi := pt.abi.Uint8()).set(pt.Int(spec["round_to"])),
-
-        (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
-        (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
-        (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
-        (reserved_3_abi := pt.abi.Uint32()).set(pt.Int(0)),
-
-        (src_spec := pt.abi.make(SourceSpecUrl)).set(
-            url_abi, auth_url_abi, value_expr_abi, timestamp_expr_abi,
-            max_age_abi, value_type_abi, round_to_abi, gateway_url_abi,
-            reserved_0_abi, reserved_1_abi, reserved_2_abi, reserved_3_abi,
-        ),
-
-        (src_specs := pt.abi.make(pt.abi.DynamicArray[SourceSpecUrl])).set(
-            [ src_spec ]
-        ),
-
         (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
-        (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
-
-        (request_spec := pt.abi.make(RequestSpecUrl)).set(
-            src_specs, aggr_abi, user_data_abi,
-        ),
-        (request_spec_enc := pt.abi.DynamicBytes()).set(request_spec.encode()),
-
+            (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
         (dest_app_abi := pt.abi.Uint64()).set(
             dest_app or pt.Global.current_application_id()),
-
         (dest_selector_abi := pt.abi.DynamicBytes()).set(pt.Bytes(dest_method)),
         (dest := pt.abi.make(DestinationSpec)).set(dest_app_abi, dest_selector_abi),
         (dest_enc := pt.abi.DynamicBytes()).set(dest.encode()),
-
         (asset_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
         (account_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Address])).set([]),
         (app_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
         (box_refs := pt.abi.make(pt.abi.DynamicArray[BoxType])).set([]),
+    ]
 
-        # Call Gora main smart contract and submit the oracle request.
+    specs_list = []
+    for params in specs_params:
+        spec = spec_defaults | params
+
+        result.extend([
+            (url_abi := pt.abi.DynamicBytes()).set(
+                pt.Bytes(spec["url"])),
+            (value_expr_abi := pt.abi.DynamicBytes()).set(
+                pt.Bytes(spec["value_expr"])),
+            (timestamp_expr_abi := pt.abi.DynamicBytes()).set(
+                pt.Bytes(spec["timestamp_expr"])),
+            (auth_url_abi := pt.abi.DynamicBytes()).set(
+                pt.Bytes(spec["auth_url"])),
+            (gateway_url_abi := pt.abi.DynamicBytes()).set(
+                pt.Bytes(spec["gateway_url"])),
+
+            (max_age_abi := pt.abi.Uint32()).set(pt.Int(spec["max_age"])),
+            (value_type_abi := pt.abi.Uint8()).set(pt.Int(spec["value_type"])),
+            (round_to_abi := pt.abi.Uint8()).set(pt.Int(spec["round_to"])),
+
+            (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+            (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+            (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
+            (reserved_3_abi := pt.abi.Uint32()).set(pt.Int(0)),
+
+            (spec_abi := pt.abi.make(SourceSpecUrl)).set(
+                url_abi, auth_url_abi, value_expr_abi, timestamp_expr_abi,
+                max_age_abi, value_type_abi, round_to_abi, gateway_url_abi,
+                reserved_0_abi, reserved_1_abi, reserved_2_abi, reserved_3_abi,
+            ),
+        ]),
+        specs_list.append(spec_abi),
+
+    result.extend([
+        (specs_list_abi := pt.abi.make(pt.abi.DynamicArray[SourceSpecUrl])).set(
+            specs_list),
+        (request_spec := pt.abi.make(RequestSpecUrl)).set(
+            specs_list_abi, aggr_abi, user_data_abi,
+        ),
+        (request_spec_enc := pt.abi.DynamicBytes()).set(request_spec.encode()),
+
         pt.InnerTxnBuilder.Begin(),
         pt.InnerTxnBuilder.MethodCall(
             app_id=pt.Int(main_app_id),
@@ -275,4 +278,6 @@ def query_oracle_urls(request_key, dest_app, dest_method, spec_params, aggr = 0,
                    app_refs, asset_refs, account_refs, box_refs ],
         ),
         pt.InnerTxnBuilder.Submit(),
-    )
+    ])
+
+    return pt.Seq(result)
