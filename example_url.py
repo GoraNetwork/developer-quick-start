@@ -49,7 +49,8 @@ def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
                     "value_expr": "regex:>Solana is (?:up|down) ([.0-9]+)% in the last 24 hours",
                     "value_type": 1,
                 },
-            ]
+            ],
+            2 # aggregate for maximum
         ),
     )
 
