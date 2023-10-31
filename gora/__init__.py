@@ -28,7 +28,6 @@ main_app_addr = asdk.logic.get_application_address(main_app_id)
 main_app_addr_bin = base64.b32decode(main_app_addr + "======")
 main_app_addr_short_bin = main_app_addr_bin[:-4] # remove CRC
 
-print(main_app_addr)
 gora_token_deposit_amount = int(get_env("GORA_TOKEN_DEPOSIT_AMOUNT", 10_000_000_000))
 gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_000))
 
