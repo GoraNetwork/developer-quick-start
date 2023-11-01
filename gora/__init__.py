@@ -227,6 +227,20 @@ def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
         (account_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Address])).set([]),
         (app_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
         (box_refs := pt.abi.make(pt.abi.DynamicArray[BoxType])).set([]),
+
+        (url_abi := pt.abi.DynamicBytes()).set(""),
+        (value_expr_abi := pt.abi.DynamicBytes()).set(""),
+        (timestamp_expr_abi := pt.abi.DynamicBytes()).set(""),
+        (auth_url_abi := pt.abi.DynamicBytes()).set(""),
+        (gateway_url_abi := pt.abi.DynamicBytes()).set(""),
+        (max_age_abi := pt.abi.Uint32()).set(pt.Int(0)),
+        (value_type_abi := pt.abi.Uint8()).set(pt.Int(0)),
+        (round_to_abi := pt.abi.Uint8()).set(pt.Int(0)),
+
+        (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+        (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
+        (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
+        (reserved_3_abi := pt.abi.Uint32()).set(pt.Int(0)),
     ]
 
     specs_list = []
@@ -234,26 +248,15 @@ def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
         spec = spec_defaults | params
 
         result.extend([
-            (url_abi := pt.abi.DynamicBytes()).set(
-                pt.Bytes(spec["url"])),
-            (value_expr_abi := pt.abi.DynamicBytes()).set(
-                pt.Bytes(spec["value_expr"])),
-            (timestamp_expr_abi := pt.abi.DynamicBytes()).set(
-                pt.Bytes(spec["timestamp_expr"])),
-            (auth_url_abi := pt.abi.DynamicBytes()).set(
-                pt.Bytes(spec["auth_url"])),
-            (gateway_url_abi := pt.abi.DynamicBytes()).set(
-                pt.Bytes(spec["gateway_url"])),
+            url_abi.set(pt.Bytes(spec["url"])),
+            value_expr_abi.set(pt.Bytes(spec["value_expr"])),
 
-            (max_age_abi := pt.abi.Uint32()).set(pt.Int(spec["max_age"])),
-            (value_type_abi := pt.abi.Uint8()).set(pt.Int(spec["value_type"])),
-            (round_to_abi := pt.abi.Uint8()).set(pt.Int(spec["round_to"])),
-
-            (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
-            (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
-            (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
-            (reserved_3_abi := pt.abi.Uint32()).set(pt.Int(0)),
-
+            timestamp_expr_abi.set(pt.Bytes(spec["timestamp_expr"])),
+            auth_url_abi.set(pt.Bytes(spec["auth_url"])),
+            gateway_url_abi.set(pt.Bytes(spec["gateway_url"])),
+            max_age_abi.set(pt.Int(spec["max_age"])),
+            value_type_abi.set(pt.Int(spec["value_type"])),
+            round_to_abi.set(pt.Int(spec["round_to"])),
             (spec_abi := pt.abi.make(SourceSpecUrl)).set(
                 url_abi, auth_url_abi, value_expr_abi, timestamp_expr_abi,
                 max_age_abi, value_type_abi, round_to_abi, gateway_url_abi,
