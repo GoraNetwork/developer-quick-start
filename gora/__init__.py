@@ -203,10 +203,21 @@ def pt_smart_assert(cond):
 """
 Make an oracle request with specified parameters.
 """
-def pt_oracle_request(request_spec_abi, dest_enc, request_type, request_key,
-                      app_refs, asset_refs, account_refs, box_refs):
+def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
+                      dest_method, aggr, user_data, box_refs, app_refs,
+                      asset_refs, account_refs):
 
     return pt.Seq(
+        (request_type := pt.abi.Uint64()).set(pt.Int(2)),
+        (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
+            (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
+
+        (dest_app_abi := pt.abi.Uint64()).set(
+            dest_app or pt.Global.current_application_id()),
+        (dest_selector_abi := pt.abi.DynamicBytes()).set(pt.Bytes(dest_method)),
+        (dest := pt.abi.make(DestinationSpec)).set(dest_app_abi, dest_selector_abi),
+        (dest_abi := pt.abi.DynamicBytes()).set(dest.encode()),
+
         (box_refs_abi := pt.abi.make(pt.abi.DynamicArray[BoxType])).set(box_refs),
         (asset_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set(
             asset_refs),
@@ -215,11 +226,16 @@ def pt_oracle_request(request_spec_abi, dest_enc, request_type, request_key,
         (app_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set(
             app_refs),
 
+        (request_spec := pt.abi.make(RequestSpecUrl)).set(
+            specs_list_abi, aggr_abi, user_data_abi,
+        ),
+        (request_spec_abi := pt.abi.DynamicBytes()).set(request_spec.encode()),
+
         pt.InnerTxnBuilder.Begin(),
         pt.InnerTxnBuilder.MethodCall(
             app_id=pt.Int(main_app_id),
             method_signature="request" + request_method_spec,
-            args=[ request_spec_abi, dest_enc, request_type, request_key,
+            args=[ request_spec_abi, dest_abi, request_type, request_key,
                    app_refs_abi, asset_refs_abi, account_refs_abi, box_refs_abi ],
         ),
         pt.InnerTxnBuilder.Submit(),
@@ -229,9 +245,9 @@ def pt_oracle_request(request_spec_abi, dest_enc, request_type, request_key,
 """
 Make a General URL request with one or more URL sources.
 """
-def query_general_urls(request_key, dest_app, dest_method, specs_params,
-                       aggr = 0, user_data = "", box_refs = [],
-                       asset_refs = [], account_refs = [], app_refs = []):
+def pt_query_general_url(request_key, dest_app, dest_method, specs_params,
+                         aggr = 0, user_data = "", box_refs = [],
+                         asset_refs = [], account_refs = [], app_refs = []):
 
     spec_defaults = {
         "timestamp_expr": "",
@@ -242,16 +258,6 @@ def query_general_urls(request_key, dest_app, dest_method, specs_params,
     }
 
     result = [
-        (request_type := pt.abi.Uint64()).set(pt.Int(2)),
-        (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
-            (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
-
-        (dest_app_abi := pt.abi.Uint64()).set(
-            dest_app or pt.Global.current_application_id()),
-        (dest_selector_abi := pt.abi.DynamicBytes()).set(pt.Bytes(dest_method)),
-        (dest := pt.abi.make(DestinationSpec)).set(dest_app_abi, dest_selector_abi),
-        (dest_enc := pt.abi.DynamicBytes()).set(dest.encode()),
-
         (url_abi := pt.abi.DynamicBytes()).set(""),
         (value_expr_abi := pt.abi.DynamicBytes()).set(""),
         (timestamp_expr_abi := pt.abi.DynamicBytes()).set(""),
@@ -260,7 +266,6 @@ def query_general_urls(request_key, dest_app, dest_method, specs_params,
         (max_age_abi := pt.abi.Uint32()).set(pt.Int(0)),
         (value_type_abi := pt.abi.Uint8()).set(pt.Int(0)),
         (round_to_abi := pt.abi.Uint8()).set(pt.Int(0)),
-
         (reserved_0_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
         (reserved_1_abi := pt.abi.DynamicBytes()).set(pt.Bytes("")),
         (reserved_2_abi := pt.abi.Uint32()).set(pt.Int(0)),
@@ -292,12 +297,10 @@ def query_general_urls(request_key, dest_app, dest_method, specs_params,
     result.extend([
         (specs_list_abi := pt.abi.make(pt.abi.DynamicArray[SourceSpecUrl])).set(
             specs_list),
-        (request_spec := pt.abi.make(RequestSpecUrl)).set(
-            specs_list_abi, aggr_abi, user_data_abi,
-        ),
-        (request_spec_abi := pt.abi.DynamicBytes()).set(request_spec.encode()),
-        pt_oracle_request(request_spec_abi, dest_enc, request_type, request_key,
-                          app_refs, asset_refs, account_refs, box_refs),
+        pt_oracle_request(2, request_key, specs_list_abi, dest_app, dest_method,
+                          aggr, user_data, box_refs, app_refs, asset_refs,
+                          account_refs),
+
     ])
 
     return pt.Seq(result)
