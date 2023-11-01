@@ -204,7 +204,8 @@ def pt_smart_assert(cond):
 Make a General URL request with one or more URL sources.
 """
 def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
-                      aggr = 0, user_data = "") -> pt.Expr:
+                      aggr = 0, user_data = "", box_refs = [],
+                      asset_refs = [], account_refs = [], app_refs = []) -> pt.Expr:
 
     spec_defaults = {
         "timestamp_expr": "",
@@ -218,15 +219,20 @@ def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
         (request_type := pt.abi.Uint64()).set(pt.Int(2)),
         (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
             (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
+
         (dest_app_abi := pt.abi.Uint64()).set(
             dest_app or pt.Global.current_application_id()),
         (dest_selector_abi := pt.abi.DynamicBytes()).set(pt.Bytes(dest_method)),
         (dest := pt.abi.make(DestinationSpec)).set(dest_app_abi, dest_selector_abi),
         (dest_enc := pt.abi.DynamicBytes()).set(dest.encode()),
-        (asset_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
-        (account_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Address])).set([]),
-        (app_refs := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set([]),
-        (box_refs := pt.abi.make(pt.abi.DynamicArray[BoxType])).set([]),
+
+        (box_refs_abi := pt.abi.make(pt.abi.DynamicArray[BoxType])).set(box_refs),
+        (asset_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set(
+            asset_refs),
+        (account_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Address])).set(
+            account_refs),
+        (app_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set(
+            app_refs),
 
         (url_abi := pt.abi.DynamicBytes()).set(""),
         (value_expr_abi := pt.abi.DynamicBytes()).set(""),
@@ -278,7 +284,7 @@ def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
             app_id=pt.Int(main_app_id),
             method_signature="request" + request_method_spec,
             args=[ request_spec_enc, dest_enc, request_type, request_key,
-                   app_refs, asset_refs, account_refs, box_refs ],
+                   app_refs_abi, asset_refs_abi, account_refs_abi, box_refs_abi ],
         ),
         pt.InnerTxnBuilder.Submit(),
     ])
