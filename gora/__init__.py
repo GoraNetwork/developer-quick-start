@@ -203,9 +203,9 @@ def pt_smart_assert(cond):
 """
 Make a General URL request with one or more URL sources.
 """
-def query_oracle_urls(request_key, dest_app, dest_method, specs_params,
-                      aggr = 0, user_data = "", box_refs = [],
-                      asset_refs = [], account_refs = [], app_refs = []) -> pt.Expr:
+def query_general_urls(request_key, dest_app, dest_method, specs_params,
+                       aggr = 0, user_data = "", box_refs = [],
+                       asset_refs = [], account_refs = [], app_refs = []) -> pt.Expr:
 
     spec_defaults = {
         "timestamp_expr": "",

@@ -37,7 +37,7 @@ def handle_oracle_url(resp_type: pt.abi.Uint32,
 def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
 
     return pt.Seq(
-        gora.query_oracle_urls(
+        gora.query_general_urls(
             request_key, None, "handle_oracle_url", [
                 {
                     "url": "https://coinmarketcap.com/currencies/bnb/",
