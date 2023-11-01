@@ -32,7 +32,7 @@ def handle_oracle_url(resp_type: pt.abi.Uint32,
         example_url_app.state.last_oracle_value.set(oracle_value.encode()),
     )
 
-# Query multiple URL sources with aggregation.
+# Query a General URL source with regex parsing.
 @example_url_app.external
 def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
 
@@ -44,13 +44,7 @@ def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
                     "value_expr": "regex:>BNB is (?:up|down) ([.0-9]+)% in the last 24 hours",
                     "value_type": 1,
                 },
-                {
-                    "url": "https://coinmarketcap.com/currencies/sol/",
-                    "value_expr": "regex:>Solana is (?:up|down) ([.0-9]+)% in the last 24 hours",
-                    "value_type": 1,
-                },
-            ],
-            2 # aggregate for maximum
+            ]
         ),
     )
 
