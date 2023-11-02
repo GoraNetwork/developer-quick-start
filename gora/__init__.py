@@ -45,7 +45,7 @@ response_method_spec = "(uint32[],byte[])void"
 class SourceSpec(pt.abi.NamedTuple):
     source_id: pt.abi.Field[pt.abi.Uint32]
     source_arg_list: pt.abi.Field[pt.abi.DynamicArray[pt.abi.DynamicBytes]]
-    max_age: pt.abi.Field[pt.abi.Uint64]
+    max_age: pt.abi.Field[pt.abi.Uint32]
 
 # Oracle source specification for General URL (type #2) requests.
 class SourceSpecUrl(pt.abi.NamedTuple):
@@ -207,8 +207,11 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
                       dest_method, aggr, user_data, box_refs, app_refs,
                       asset_refs, account_refs):
 
+    print("request_type:", request_type)#DB
+    spec_class = RequestSpec if request_type == 1 else RequestSpecUrl
+
     return pt.Seq(
-        (request_type := pt.abi.Uint64()).set(pt.Int(2)),
+        (request_type_abi := pt.abi.Uint64()).set(request_type),
         (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
             (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
 
@@ -226,7 +229,7 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
         (app_refs_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.Uint64])).set(
             app_refs),
 
-        (request_spec := pt.abi.make(RequestSpecUrl)).set(
+        (request_spec := pt.abi.make(spec_class)).set(
             specs_list_abi, aggr_abi, user_data_abi,
         ),
         (request_spec_abi := pt.abi.DynamicBytes()).set(request_spec.encode()),
@@ -235,12 +238,11 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
         pt.InnerTxnBuilder.MethodCall(
             app_id=pt.Int(main_app_id),
             method_signature="request" + request_method_spec,
-            args=[ request_spec_abi, dest_abi, request_type, request_key,
+            args=[ request_spec_abi, dest_abi, request_type_abi, request_key,
                    app_refs_abi, asset_refs_abi, account_refs_abi, box_refs_abi ],
         ),
         pt.InnerTxnBuilder.Submit(),
     )
-
 
 """
 Make a General URL request with one or more URL sources.
@@ -279,13 +281,13 @@ def pt_query_general_url(request_key, dest_app, dest_method, specs_params,
         result.extend([
             url_abi.set(pt.Bytes(spec["url"])),
             value_expr_abi.set(pt.Bytes(spec["value_expr"])),
-
             timestamp_expr_abi.set(pt.Bytes(spec["timestamp_expr"])),
             auth_url_abi.set(pt.Bytes(spec["auth_url"])),
             gateway_url_abi.set(pt.Bytes(spec["gateway_url"])),
             max_age_abi.set(pt.Int(spec["max_age"])),
             value_type_abi.set(pt.Int(spec["value_type"])),
             round_to_abi.set(pt.Int(spec["round_to"])),
+
             (spec_abi := pt.abi.make(SourceSpecUrl)).set(
                 url_abi, auth_url_abi, value_expr_abi, timestamp_expr_abi,
                 max_age_abi, value_type_abi, round_to_abi, gateway_url_abi,
@@ -301,6 +303,42 @@ def pt_query_general_url(request_key, dest_app, dest_method, specs_params,
                           aggr, user_data, box_refs, app_refs, asset_refs,
                           account_refs),
 
+    ])
+
+    return pt.Seq(result)
+
+"""
+Make a classic request with one or more URL sources.
+"""
+def pt_query_classic(request_key, dest_app, dest_method, specs_params,
+                     aggr = 0, user_data = "", box_refs = [],
+                     asset_refs = [], account_refs = [], app_refs = []):
+
+    result = [];
+    specs_list = []
+
+    for spec in specs_params:
+        args_pre_abi = [];
+        for arg in spec.get("args", []):
+            result.append((arg_abi := pt.abi.DynamicBytes()).set(pt.Bytes(arg)))
+            args_pre_abi.append(arg_abi)
+
+        result.extend([
+            (id_abi := pt.abi.Uint32()).set(pt.Int(spec["id"])),
+            (max_age_abi := pt.abi.Uint32()).set(pt.Int(spec.get("max_age", 0))),
+            (args_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.DynamicBytes])).set(
+                args_pre_abi),
+            (spec_abi := pt.abi.make(SourceSpec)).set(
+                id_abi, args_abi, max_age_abi),
+        ])
+        specs_list.append(spec_abi)
+
+    result.extend([
+        (specs_list_abi := pt.abi.make(pt.abi.DynamicArray[SourceSpec])).set(
+            specs_list),
+        pt_oracle_request(1, request_key, specs_list_abi, dest_app, dest_method,
+                          aggr, user_data, box_refs, app_refs, asset_refs,
+                          account_refs),
     ])
 
     return pt.Seq(result)
