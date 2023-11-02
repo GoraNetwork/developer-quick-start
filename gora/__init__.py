@@ -207,12 +207,11 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
                       dest_method, aggr, user_data, box_refs, app_refs,
                       asset_refs, account_refs):
 
-    print("request_type:", request_type)#DB
     spec_class = RequestSpec if request_type == 1 else RequestSpecUrl
-
     return pt.Seq(
+
         (request_type_abi := pt.abi.Uint64()).set(request_type),
-        (aggr_abi := pt.abi.Uint32()).set(pt.Int(aggr)),
+        (aggr_abi := pt.abi.Uint32()).set(aggr),
             (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
 
         (dest_app_abi := pt.abi.Uint64()).set(
