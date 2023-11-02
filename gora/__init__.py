@@ -381,9 +381,6 @@ def run_demo_app(demo_app, demo_method):
     req_key = uuid.uuid4().bytes;
     box_name = get_ora_box_name(req_key, app_addr)
 
-    # Reset global storage variable that will be populated by the destination app.
-    pt.App.globalPut(pt.Bytes("oracle_result"), pt.Bytes("")),
-
     print("Calling the app")
     result = app_client.call(
         method=demo_method,
