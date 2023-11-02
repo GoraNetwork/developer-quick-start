@@ -49,7 +49,7 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
 
         # Maximum age in seconds an oracle source response can have before being
         # discarded as outdated. Set to 0 if not using this feature.
-        (max_age := pt.abi.Uint64()).set(pt.Int(0)),
+        (max_age := pt.abi.Uint32()).set(pt.Int(0)),
 
         # Source specification is the structure combining the above elements.
         (source_spec := pt.abi.make(gora.SourceSpec)).set(
