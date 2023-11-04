@@ -24,9 +24,9 @@ def handle_oracle_classic(resp_type: pt.abi.Uint32,
         gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
         (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
         resp_body.oracle_value.store_into(
-            oracle_value := pt.abi.make(pt.abi.DynamicArray[pt.abi.Byte])
+            oracle_value := pt.abi.make(pt.abi.DynamicBytes)
         ),
-        example_classic_app.state.last_oracle_value.set(oracle_value.encode()),
+        example_classic_app.state.last_oracle_value.set(oracle_value.get())
     )
 
 # Query multiple classic sources with aggregation.
@@ -44,4 +44,4 @@ def query_oracle_classic(request_key: pt.abi.DynamicBytes) -> pt.Expr:
     )
 
 if __name__ == "__main__":
-    gora.run_demo_app(example_classic_app, query_oracle_classic)
+    gora.run_demo_app(example_classic_app, query_oracle_classic, True)

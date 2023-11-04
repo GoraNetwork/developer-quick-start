@@ -7,6 +7,8 @@ import hashlib
 import uuid
 import base64
 import re
+import time
+import struct
 
 from typing import Literal as L
 from .inline import InlineAssembly
@@ -84,8 +86,8 @@ class DestinationSpec(pt.abi.NamedTuple):
 class ResponseBody(pt.abi.NamedTuple):
     request_id: pt.abi.Field[pt.abi.StaticBytes[L[32]]]
     requester_addr: pt.abi.Field[pt.abi.Address]
-    oracle_value: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
-    user_data: pt.abi.Field[pt.abi.DynamicArray[pt.abi.Byte]]
+    oracle_value: pt.abi.Field[pt.abi.DynamicBytes]
+    user_data: pt.abi.Field[pt.abi.DynamicBytes]
     error_code: pt.abi.Field[pt.abi.Uint32]
     source_errors: pt.abi.Field[pt.abi.Uint64]
 
@@ -343,8 +345,39 @@ def pt_query_classic(request_key, dest_app, dest_method, specs_params,
 
     return pt.Seq(result)
 
+# Return text description of a numeric oracle response.
+def describe_ora_num(packed):
+
+    if packed is None:
+        return "None"
+    if packed[0] == 0:
+        return "NaN"
+
+    int_part = struct.unpack_from('>Q', packed, 1)
+    dec_part = struct.unpack_from('>Q', packed, 9)
+    prefix = "-" if packed[0] == 2 else ""
+    return prefix + str(int_part[0]) + "." + str(dec_part[0])
+
+# Return last oracle response as a byte string.
+def get_ora_value(algod_client, app_id, addr, key_name = "last_oracle_value",
+                  max_time = 10, interval = 0.5):
+
+    print("Waiting for oracle return value")
+    key = base64.b64encode(key_name.encode())
+    start_time = time.time()
+
+    while time.time() - start_time < max_time:
+        app_info = algod_client.account_application_info(addr, app_id)
+        global_vars = app_info["created-app"].get("global-state", [])
+        value_vars = [ x for x in global_vars if x["key"].encode() == key ]
+        if (value_vars):
+            value = base64.b64decode(value_vars[0]["value"]["bytes"])
+            return value
+
+
+
 # Run a demo script.
-def run_demo_app(demo_app, demo_method):
+def run_demo_app(demo_app, demo_method, is_numeric = False):
 
     # Get Algorand API client instance to talk to local Algorand sandbox node.
     algod_client = bk.localnet.get_algod_client()
@@ -389,9 +422,19 @@ def run_demo_app(demo_app, demo_method):
         boxes=[ (main_app_id, box_name) ],
     )
 
-    print("Confirmed in round:", result.tx_info["confirmed-round"])
+    req_round = result.tx_info["confirmed-round"]
+    print("Confirmed in round:", req_round)
     print("Txn ID:", result.tx_id)
 
     inner_logs = [ base64.b64decode(x) for x in result.tx_info["inner-txns"][0]["logs"] ]
     request_id_msg = next(x for x in inner_logs if re.match(br"^req_id-", x))
     print("Request ID:", base64.b32encode(request_id_msg[7:]))
+
+    ora_value = get_ora_value(algod_client, app_id, account.address)
+    if (ora_value is None):
+        print("No oracle value received")
+        return
+
+    value_descr = describe_ora_num(ora_value) if is_numeric else ora_value
+    print("Received oracle value:", value_descr)
+
