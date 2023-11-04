@@ -27,9 +27,9 @@ def handle_oracle_const(resp_type: pt.abi.Uint32,
         gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
         (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
         resp_body.oracle_value.store_into(
-            oracle_value := pt.abi.make(pt.abi.DynamicArray[pt.abi.Byte])
+            oracle_value := pt.abi.make(pt.abi.DynamicBytes)
         ),
-        example_const_app.state.last_oracle_value.set(oracle_value.encode()),
+        example_const_app.state.last_oracle_value.set(oracle_value.get())
     )
 
 # Query a test oracle source that always returns 1.
@@ -108,4 +108,4 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
     )
 
 if __name__ == "__main__":
-    gora.run_demo_app(example_const_app, query_oracle_const)
+    gora.run_demo_app(example_const_app, query_oracle_const, True)
