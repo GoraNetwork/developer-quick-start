@@ -9,6 +9,7 @@ import base64
 import re
 import time
 import struct
+import json
 
 from typing import Literal as L
 from .inline import InlineAssembly
@@ -22,10 +23,13 @@ def get_env(var, defl=None):
             val = defl
     return val
 
-# Application ID of the main Gora smart contract that will be called to
-# submit oracle requests. Depends on the Algorand network (mainnet, testnet, etc.)
-token_asset_id = int(get_env("GORA_TOKEN_ASSET_ID"))
-main_app_id = int(get_env("GORA_MAIN_APP_ID"))
+
+conf_file = get_env("HOME") + "/.goracle_dev"
+print(f'Loading config from "{conf_file}"')
+gora_conf = json.load(open(conf_file))
+
+main_app_id = gora_conf["blockchain"]["perNetworkConfig"]["override"]["appIds"]["main"]
+print("Main app ID:", main_app_id)
 
 main_app_addr = asdk.logic.get_application_address(main_app_id)
 main_app_addr_bin = base64.b32decode(main_app_addr + "======")
@@ -97,6 +101,13 @@ class BoxType(pt.abi.NamedTuple):
     app_id: pt.abi.Field[pt.abi.Uint64]
 
 """
+Return Gora token asset ID
+"""
+def get_token_asset_id(algod_client):
+    acc_info = algod_client.account_info(main_app_addr)
+    return acc_info["assets"][0]["asset-id"]
+
+"""
 Setup an Algo deposit with Gora for a given account and app.
 """
 def setup_algo_deposit(algod_client, account, app_addr):
@@ -128,6 +139,7 @@ Setup a token deposit with Gora for a given account and app.
 """
 def setup_token_deposit(algod_client, account, app_addr):
     print("Setting up token deposit...")
+    token_asset_id = get_token_asset_id(algod_client)
     composer = asdk.atomic_transaction_composer.AtomicTransactionComposer()
     unsigned_transfer_txn = asdk.transaction.AssetTransferTxn(
         sender=account.address,
@@ -362,7 +374,7 @@ def describe_ora_num(packed):
 def get_ora_value(algod_client, app_id, addr, key_name = "last_oracle_value",
                   max_time = 10, interval = 0.5):
 
-    print("Waiting for oracle return value")
+    print(f"Waiting for for oracle return value (up to {max_time} seconds)")
     key = base64.b64encode(key_name.encode())
     start_time = time.time()
 
@@ -397,8 +409,11 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     print("Deploying the app...")
     app_id, app_addr, txid = app_client.create()
     print("Done, txn ID:", txid)
-    print("Aapp ID:", app_id)
+    print("App ID:", app_id)
     print("App address:", app_addr)
+
+    token_asset_id = get_token_asset_id(algod_client)
+    print("Token asset ID:", token_asset_id)
 
     # Supply the app with GORA tokens and ALGO.
     print("Initializing app for GORA...")
@@ -424,11 +439,7 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
 
     req_round = result.tx_info["confirmed-round"]
     print("Confirmed in round:", req_round)
-    print("Txn ID:", result.tx_id)
-
-    inner_logs = [ base64.b64decode(x) for x in result.tx_info["inner-txns"][0]["logs"] ]
-    request_id_msg = next(x for x in inner_logs if re.match(br"^req_id-", x))
-    print("Request ID:", base64.b32encode(request_id_msg[7:]))
+    print("Top txn ID:", result.tx_id)
 
     ora_value = get_ora_value(algod_client, app_id, account.address)
     if (ora_value is None):
