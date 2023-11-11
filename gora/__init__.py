@@ -15,6 +15,11 @@ import algosdk as asdk
 from typing import Literal as L
 from .inline import InlineAssembly
 
+# Make checkout directory current to allow safe multiple checkouts usage.
+script_dir, script_file = os.path.split(os.path.abspath(__file__))
+os.chdir(script_dir)
+os.chdir("..")
+
 def get_env(var, defl=None):
     val = os.environ.get(var)
     if val is None:
