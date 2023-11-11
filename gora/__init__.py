@@ -485,6 +485,8 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
             "GORACLE_CONFIG_FILE": cfg_path,
             "GORACLE_DEV_ONLY_ROUND": str(req_round),
         }, True)
+    else:
+        print("Detected development Gora node running in background")
 
 
     ora_value = get_ora_value(algod_client, app_id, account.address)
