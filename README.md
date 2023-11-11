@@ -29,21 +29,16 @@ The following Algorand software must be installed and functioning:
  * [Algorand Beaker framework](https://github.com/algorand-devrel/beaker "Algorand Beaker GitHub page")
 
 Refer to documentation at the above links for download and installation
-instructions. Alternatively, you may use Algokit, Algorand's simplified
-environment setup toolkit that will handle that for you. Algorand Sandbox must
-run a local Algorand network which is the default, but make sure not to start it
-on testnet or devnet Algorand networks unintentionally.
+instructions. If using a different package to setup your Algorand node, such as
+AlgoKit, find out its Algod API connection port number and have it handy during
+setup of Gora software as you may need to override the default value of `4001`.
 
-**Warning!*** By default, the Algorand Sandbox runs its local network,
-automatically confirming new transactions on time period basis. This is
-currently the recommended mode for Gora development. The "dev" mode of Algorand
-Sandbox which confirms every transaction instantly and places it in its own
-round is currently not supported. It is incompatible with security mechanisms
-of production Gora smart contracts.
-
-To check that an Algorand development node is up and running on your host, execute:
-`curl http://localhost:4001/versions`. You should get a JSON response with
-version information fields, including: `"genesis_id":"sandnet-v1"`.
+**Warning!*** By default, Algorand Sandbox runs its local network automatically
+confirming new transactions on time period basis. This is currently the
+recommended mode for Gora development. The "dev" mode of Algorand Sandbox which
+confirms every transaction instantly and places it in its own round is not
+supported by Gora. It is incompatible with security mechanisms of Gora smart
+contracts.
 
 ### Gora software
 
