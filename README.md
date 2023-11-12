@@ -31,7 +31,7 @@ The following Algorand software must be installed and functioning:
 Refer to documentation at the above links for download and installation
 instructions. If using a different package to setup your Algorand node, such as
 AlgoKit, find out its Algod API connection port number and have it handy during
-setup of Gora software as you may need to override the default value of `4001`.
+setup of Gora software. You may need to enter it if it differs from `4001`.
 
 **Warning!*** By default, Algorand Sandbox runs its local network automatically
 confirming new transactions on time period basis. This is currently the
@@ -42,31 +42,33 @@ contracts.
 
 ### Gora software
 
-Both Gora smart contracts and Gora node are managed with Gora CLI tool.
-Download it [here](https://download.goracle.io/latest-dev/linux/goracle "Gora CLI tool Linux binary"),
-then make it executable by running `chmod +x ./goracle`.  Running the CLI tool
-without arguments will list available commands. To get help on a command, run
-`./goracle help <command name>`, for example: `./goracle help docker-start`.
+To install and configure Gora software for the development environment, run
+`python3 setup.py` and follow the prompts. Gora tools will be downloaded and
+config files created for you automatically in the checkout directory.
+**Warning!** *Do NOT follow normal Gora node setup process.*
 
-**Warning!** Do NOT follow normal Gora node setup process for live network
-operators when setting up a development node.
+When the above script finishes, you should have Gora smart contracts deployed to
+local network in your Algorand Sandbox install, as well as Gora node
+configuration to use it. It will form a local development single-node Gora
+network necessary to serve locally tested applications. For it to work, this
+Gora node must be running when an application request is made. The demo
+applications in this repository ensure this by running the node temporarily if
+it is not already executing. To test your own applications, you should run
+the node continuously. To start it with log output to the terminal, change to
+the checkout directory and run: `GORACLE_CONFIG_FILE=./.goracle ./goracle docker-start`.
+To make it run in background, add `--background` switch to the above command;
+to see node's messages, run `docker logs goracle-nr-dev`.
 
-To set up your development node, run: `GORACLE_CONFIG_FILE= ./goracle dev-init`.
-This would clone Gora smart contracts from testnet to your local Algorand
-Sandbox network and create a config file for your development node. By default,
-this file is called `~/.goracle_dev`. Now you should be ready to start your
-development node as: `GORACLE_CONFIG_FILE=~/.goracle_dev ./goracle docker-start`.
+**Warning!** *Do not add more nodes to this setup as it can break oracle
+consensus and stop request processing.*
 
-This will form a single-node Gora network for local end-to-end testing of your
-applications. This node will pick up your local Gora requests and process them
-like a production network would, logging various debugging information to
-standard output.
+## Example apps
 
-**Warning!** do not stop the node. You must have your development node up and
-running to process requests from the example app or from any Gora-enabled apps
-which you will be developing locally.
+This repository includes several example [PyTeal](https://pyteal.readthedocs.io/en/stable/ "PyTeal official website")
+applications demonstrating the use of Gora oracle. They will be considered below
+more or less in the order of complexity.
 
-## Example app
+### Basic example
 
 The example app [example_const.py](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_const.py "Example app on Github")
 demonstrates the use of Gora with a test oracle source. That source is built
