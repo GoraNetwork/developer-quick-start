@@ -1,25 +1,27 @@
 # Gora developer quick start package
 
-This repository is intended to help developers writing their first blockchain
-application using Gora decentralized oracle. Here you will find:
+This repository is here to help developers writing their first blockchain
+applications using Gora decentralized oracle.
 
- * Example application that can be used as a template
- * Step-by-step instructions on how to deploy and test it
+Here you will find:
+
+ * Instructions on how to setup and use a local Gora development environment
+ * Examples applications that can be used as templates
  * Info on commands and tools for troubleshooting your Gora applications
 
-All instructions here are written and tested for Linux. Mac users have reported
-success with most of the tools used here and are welcome to follow this guide at
-their own risk. The reader must be comfortable with using command-line tools,
-the Algorand blockchain and Python programming.
+All instructions here are written and tested on Linux. Mac users reported
+success with most of the steps described here and are welcome to follow them at
+their own risk. Readers must be comfortable with using command-line tools, the
+Algorand blockchain and Python programming language.
 
-## Prerequisites and environment
+## Setting up Gora development environment
 
-There are four essential pieces to form a Gora development environment:
+There are four essential pieces to a Gora development environment:
 
- * An Algorand node, providing a local simulated Algorand network
- * Algorand Python toolset for smart contracts and external blockchain interaction
- * Gora smart contracts deployed to this network
- * A Gora node instance, running and connected to the above
+ * An Algorand node providing local simulated Algorand network
+ * Algorand Python libraries for smart contracts and blockchain APIs
+ * Deployed Gora smart contracts
+ * A Gora node, running and connected to the above
 
 ### Algorand software
 
@@ -30,43 +32,53 @@ The following Algorand software must be installed and functioning:
 
 Refer to documentation at the above links for download and installation
 instructions. If using a different package to setup your Algorand node, such as
-AlgoKit, find out its Algod API connection port number and have it handy during
-setup of Gora software. You may need to enter it if it differs from `4001`.
+AlgoKit, find out its Algod API connection port number and have it handy. If it
+differs from `4001`, you will need to enter it during setup of Gora software.
 
-**Warning!*** By default, Algorand Sandbox runs its local network automatically
+**Warning!** *By default, Algorand Sandbox runs its local network automatically
 confirming new transactions on time period basis. This is currently the
-recommended mode for Gora development. The "dev" mode of Algorand Sandbox which
+recommended mode for Gora app development. The "dev" mode of Algorand Sandbox which
 confirms every transaction instantly and places it in its own round is not
-supported by Gora. It is incompatible with security mechanisms of Gora smart
-contracts.
+currently supported. It is incompatible with security mechanisms of Gora smart
+contracts.*
 
 ### Gora software
 
-To install and configure Gora software for the development environment, run
+To install and configure Gora software for your development environment, run
 `python3 setup.py` and follow the prompts. Gora tools will be downloaded and
 config files created for you automatically in the checkout directory.
 **Warning!** *Do NOT follow normal Gora node setup process.*
 
-When the above script finishes, you should have Gora smart contracts deployed to
-local network in your Algorand Sandbox install, as well as Gora node
-configuration to use it. It will form a local development single-node Gora
-network necessary to serve locally tested applications. For it to work, this
-Gora node must be running when an application request is made. The demo
-applications in this repository ensure this by running the node temporarily if
-it is not already executing. To test your own applications, you should run
-the node continuously. To start it with log output to the terminal, change to
-the checkout directory and run: `GORACLE_CONFIG_FILE=./.goracle ./goracle docker-start`.
-To make it run in background, add `--background` switch to the above command;
-to see node's messages, run `docker logs goracle-nr-dev`.
+When the above script finishes, you will have Gora smart contracts deployed to
+local network in your Algorand Sandbox install and a Gora node configuration to
+use them. This will form a local development-only single-node Gora network
+necessary to serve your locally tested applications.
 
-**Warning!** *Do not add more nodes to this setup as it can break oracle
-consensus and stop request processing.*
+To serve local oracle requests, your development Gora node must be running when
+they are made. There are two ways to ensure this. One is to run it temporarily
+from a script that executes your application test cycle. This is what example
+apps in this repository do, details can be gleaned from their source code.
+Another way is to run the node continuously for the duration of your development
+session. To start it with log output to the terminal, change to the checkout
+directory and run: `GORACLE_CONFIG_FILE=./.goracle ./goracle docker-start`.  To
+make it run in background, add `--background` switch to the above command; to
+see node's log messages, run `docker logs goracle-nr-dev`.
+
+**Warning!** *Do not add more nodes with non-zero stakes to this setup. It can
+break oracle consensus and stop request processing.*
 
 ## Example apps
 
 This repository includes several example [PyTeal](https://pyteal.readthedocs.io/en/stable/ "PyTeal official website")
 applications demonstrating the use of Gora oracle. They will be considered below
-more or less in the order of complexity.
+more or less in the order of complexity. Example apps are built with Algorand's
+[Beaker framework](https://algorand-devrel.github.io/beaker/html/index.html "Official Beaker documentation")
+and are commented to make them accessible for novice developers.
+
+Be advised that the way you build your applications with Beaker changed at one
+point, replacing Python subclassing with decorators as means of adding custom
+functionality. If you are using additional Beaker documentation or examples,
+make sure that they are current.
 
 ### Basic example
 
@@ -76,14 +88,6 @@ into Gora and always returns the value of `1`, allowing for reliable testing and
 minimal support code. Once the user understands this example app and can execute
 it successfully in their development environment, they should be all set for
 extending it to query other Gora sources in their own custom apps.
-
-The example app is built with Algorand's [Beaker framework](https://algorand-devrel.github.io/beaker/html/index.html "Official Beaker documentation")
-and is extensively commented to make it accessible for novice developers.
-
-Be advised that the way you build your applications with Beaker changed at one
-point, replacing Python subclassing with decorators as means of adding custom
-functionality. If you are using additional Beaker documentation or examples,
-make sure that they are current.
 
 To run the example app, you must to point it to your local Gora network via
 environment variables. Check output of your Gora development node for messages
