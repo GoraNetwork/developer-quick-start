@@ -125,7 +125,6 @@ goracle-nr-dev
 2023-11-13T13:28:28.324Z INFO  Oracle sources set up: 31
 2023-11-13T13:28:28.401Z INFO  Processing round "16598" only
 2023-11-13T13:28:28.419Z DEBUG Handling call "main#1004.request" from "DPF45GKEB2H7P7HJNRHYNJXZTCSPWMLBIOFR5ZM6V2FJTPMNJ7C2VBQRHA", round "16598"
-2023-11-13T13:28:28.419Z DEBUG Using logged request ID, prefix: "req_id-"
 2023-11-13T13:28:28.423Z INFO  Processing oracle request "2L7P3TYMSNBMBGMW2RFZESVXYB4W5NFH42KG5GBTU6UY53ZBIOIQ", destination: "1280.handle_oracle_const"
 2023-11-13T13:28:28.424Z DEBUG Querying source #1, args:
 2023-11-13T13:28:28.424Z DEBUG Result #0, source "1": 1, for "2L7P3TYMSNBMBGMW2RFZESVXYB4W5NFH42KG5GBTU6UY53ZBIOIQ"
@@ -160,18 +159,23 @@ offline.
 demonstrates the use of Gora with predefined data sources. These sources are
 pre-configured under fixed numeric ID's, with more of them potentially being
 added in future releases. This example uses Gora library to simplify oracle
-request building which is recommended for production use.
+request building which is the recommended approach for production use.
 
 ### General URL example: `example_url.py`
 
 [This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_url.py "Example app on Github")
-show how to use Gora for fetching data from arbitrary URLs. Data from URL
+shows how to use Gora for fetching data from arbitrary URLs. Data from URL
 responses can be extracted with a variety of methods such as JSONPath, XPath,
 regular expressions, or substring specifications.
 
+## Troubleshooting
+
 Algorand [Dapp Flow](https://app.dappflow.org/explorer/home) web app can be used
-to trace applicable transactions and confirm that the destination call has been
-made and values updated.
+to inspect and related application transactions. To connect it to your local
+Algorand network, open the drop-down menu under the logo in the top left cornet
+and select "Sandbox". Use application or transaction IDs from the tested app
+output to find and inspect transactions of interest.
+
 **Warning!** *You may get an error message from Dapp Flow about "disabled
 parameter: application-id". This is a minor issue and should not affect
 operation.*
