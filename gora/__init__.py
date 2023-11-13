@@ -1,8 +1,5 @@
 import sys
 import os
-import pyteal as pt
-import beaker as bk
-import algosdk as asdk
 import hashlib
 import uuid
 import base64
@@ -10,9 +7,18 @@ import re
 import time
 import struct
 import json
+import subprocess
+import pyteal as pt
+import beaker as bk
+import algosdk as asdk
 
 from typing import Literal as L
 from .inline import InlineAssembly
+
+# Make checkout directory current to allow safe multiple checkouts usage.
+script_dir, script_file = os.path.split(os.path.abspath(__file__))
+os.chdir(script_dir)
+os.chdir("..")
 
 def get_env(var, defl=None):
     val = os.environ.get(var)
@@ -23,17 +29,10 @@ def get_env(var, defl=None):
             val = defl
     return val
 
-
-conf_file = get_env("HOME") + "/.goracle_dev"
-print(f'Loading config from "{conf_file}"')
-gora_conf = json.load(open(conf_file))
-
-main_app_id = gora_conf["blockchain"]["perNetworkConfig"]["override"]["appIds"]["main"]
-print("Main app ID:", main_app_id)
-
-main_app_addr = asdk.logic.get_application_address(main_app_id)
-main_app_addr_bin = base64.b32decode(main_app_addr + "======")
-main_app_addr_short_bin = main_app_addr_bin[:-4] # remove CRC
+algod_defl_port = "4001"
+cli_tool_url = "https://download.goracle.io/latest-dev/linux/goracle"
+cli_tool_path = "./goracle"
+cfg_path = "./.goracle"
 
 gora_token_deposit_amount = int(get_env("GORA_TOKEN_DEPOSIT_AMOUNT", 10_000_000_000))
 gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_000))
@@ -44,6 +43,27 @@ gora_main_app = asdk.abi.Contract.from_json(gora_main_abi_spec)
 # ABI method argument specs to build signatures for oracle method calls.
 request_method_spec = "(byte[],byte[],uint64,byte[],uint64[],uint64[],address[],(byte[],uint64)[])void"
 response_method_spec = "(uint32[],byte[])void"
+
+main_app_info = {}
+
+"""
+Load Gora config file for the dev environment.
+"""
+def load_cfg():
+    if not os.path.isfile(cfg_path):
+        print(f'Config file "{cfg_path}" not found')
+        exit()
+
+    print(f'Loading config from "{cfg_path}"')
+    local_cfg = json.load(open(cfg_path))
+
+    gora_net_cfg = local_cfg["blockchain"]["perNetworkConfig"]["override"]
+    main_app_info["id"] = gora_net_cfg["appIds"]["main"]
+    print("Main app ID:", main_app_info["id"])
+
+    main_app_info["addr"] = asdk.logic.get_application_address(main_app_info["id"])
+    addr_decoded = base64.b32decode(main_app_info["addr"] + "======")
+    main_app_info["addr_bin"] = addr_decoded[:-4] # remove CRC
 
 # Definitions of structured data types based on Algorand ABI types that are
 # used by the oracle.
@@ -104,7 +124,7 @@ class BoxType(pt.abi.NamedTuple):
 Return Gora token asset ID
 """
 def get_token_asset_id(algod_client):
-    acc_info = algod_client.account_info(main_app_addr)
+    acc_info = algod_client.account_info(main_app_info["addr"])
     return acc_info["assets"][0]["asset-id"]
 
 """
@@ -116,7 +136,7 @@ def setup_algo_deposit(algod_client, account, app_addr):
     unsigned_payment_txn = asdk.transaction.PaymentTxn(
         sender=account.address,
         sp=algod_client.suggested_params(),
-        receiver=asdk.logic.get_application_address(main_app_id),
+        receiver=asdk.logic.get_application_address(main_app_info["id"]),
         amt=gora_algo_deposit_amount,
     )
     signer = asdk.atomic_transaction_composer.AccountTransactionSigner(account.private_key)
@@ -125,7 +145,7 @@ def setup_algo_deposit(algod_client, account, app_addr):
         signer
     )
     composer.add_method_call(
-        app_id=main_app_id,
+        app_id=main_app_info["id"],
         method=gora_main_app.get_method_by_name("deposit_algo"),
         sender=account.address,
         sp=algod_client.suggested_params(),
@@ -144,7 +164,7 @@ def setup_token_deposit(algod_client, account, app_addr):
     unsigned_transfer_txn = asdk.transaction.AssetTransferTxn(
         sender=account.address,
         sp=algod_client.suggested_params(),
-        receiver=asdk.logic.get_application_address(main_app_id),
+        receiver=asdk.logic.get_application_address(main_app_info["id"]),
         index=token_asset_id,
         amt=gora_token_deposit_amount,
     )
@@ -154,7 +174,7 @@ def setup_token_deposit(algod_client, account, app_addr):
         signer
     )
     composer.add_method_call(
-        app_id=main_app_id,
+        app_id=main_app_info["id"],
         method=gora_main_app.get_method_by_name("deposit_token"),
         sender=account.address,
         sp=algod_client.suggested_params(),
@@ -202,7 +222,7 @@ Confirm that current call to a destination app is coming from Gora.
 def pt_auth_dest_call():
     return pt.Seq(
         (caller_creator_addr := pt.AppParam.creator(pt.Global.caller_app_id())),
-        pt_smart_assert(caller_creator_addr.value() == pt.Bytes(main_app_addr_short_bin)),
+        pt_smart_assert(caller_creator_addr.value() == pt.Bytes(main_app_info["addr_bin"])),
     )
 
 """
@@ -250,7 +270,7 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
 
         pt.InnerTxnBuilder.Begin(),
         pt.InnerTxnBuilder.MethodCall(
-            app_id=pt.Int(main_app_id),
+            app_id=pt.Int(main_app_info["id"]),
             method_signature="request" + request_method_spec,
             args=[ request_spec_abi, dest_abi, request_type_abi, request_key,
                    app_refs_abi, asset_refs_abi, account_refs_abi, box_refs_abi ],
@@ -327,7 +347,6 @@ Make a classic request with one or more URL sources.
 def pt_query_classic(request_key, dest_app, dest_method, specs_params,
                      aggr = 0, user_data = "", box_refs = [],
                      asset_refs = [], account_refs = [], app_refs = []):
-
     result = [];
     specs_list = []
 
@@ -357,7 +376,9 @@ def pt_query_classic(request_key, dest_app, dest_method, specs_params,
 
     return pt.Seq(result)
 
-# Return text description of a numeric oracle response.
+"""
+Return text description of a numeric oracle response.
+"""
 def describe_ora_num(packed):
 
     if packed is None:
@@ -370,7 +391,9 @@ def describe_ora_num(packed):
     prefix = "-" if packed[0] == 2 else ""
     return prefix + str(int_part[0]) + "." + str(dec_part[0])
 
-# Return last oracle response as a byte string.
+"""
+Return last oracle response as a byte string.
+"""
 def get_ora_value(algod_client, app_id, addr, key_name = "last_oracle_value",
                   max_time = 10, interval = 0.5):
 
@@ -385,11 +408,31 @@ def get_ora_value(algod_client, app_id, addr, key_name = "last_oracle_value",
         if (value_vars):
             value = base64.b64decode(value_vars[0]["value"]["bytes"])
             return value
+"""
+Return true if dev NR container is running, false otherwise.
+"""
+def is_dev_nr_running():
+    output = run_cli("docker-status", [], { "GORACLE_CONFIG_FILE": cfg_path })
+    return bool(re.search("\nRunning\n$", output))
 
+"""
+Run Gora CLI tool.
+"""
+def run_cli(cli_cmd, args = [], env = {}, is_rt = False):
+    cmd = [ cli_tool_path, cli_cmd, *args ]
+    print(f'Running: "{" ".join(cmd)}"')
+    passed_env = { **os.environ, **env }
+    if is_rt:
+        subprocess.check_call(cmd, env=passed_env)
+    else:
+        return subprocess.check_output(cmd, env=passed_env, text=True)
 
-
-# Run a demo script.
+"""
+Run a demo script.
+"""
 def run_demo_app(demo_app, demo_method, is_numeric = False):
+
+    load_cfg()
 
     # Get Algorand API client instance to talk to local Algorand sandbox node.
     algod_client = bk.localnet.get_algod_client()
@@ -421,7 +464,7 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     app_client.call(
         method="init_gora",
         token_ref=token_asset_id,
-        main_app_ref=main_app_id,
+        main_app_ref=main_app_info["id"],
     )
     setup_algo_deposit(algod_client, account, app_addr)
     setup_token_deposit(algod_client, account, app_addr)
@@ -433,13 +476,23 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     result = app_client.call(
         method=demo_method,
         request_key=req_key,
-        foreign_apps=[ main_app_id ],
-        boxes=[ (main_app_id, box_name) ],
+        foreign_apps=[ main_app_info["id"] ],
+        boxes=[ (main_app_info["id"], box_name) ],
     )
 
     req_round = result.tx_info["confirmed-round"]
     print("Confirmed in round:", req_round)
     print("Top txn ID:", result.tx_id)
+
+    if not is_dev_nr_running():
+        print("Background development Gora node not detected, running one temporarily")
+        run_cli("docker-start", [], {
+            "GORACLE_CONFIG_FILE": cfg_path,
+            "GORACLE_DEV_ONLY_ROUND": str(req_round),
+        }, True)
+    else:
+        print("Detected development Gora node running in background")
+
 
     ora_value = get_ora_value(algod_client, app_id, account.address)
     if (ora_value is None):
@@ -448,4 +501,3 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
 
     value_descr = describe_ora_num(ora_value) if is_numeric else ora_value
     print("Received oracle value:", value_descr)
-

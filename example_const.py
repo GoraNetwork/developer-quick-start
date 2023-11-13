@@ -99,7 +99,7 @@ def query_oracle_const(request_key: pt.abi.DynamicBytes) -> pt.Expr:
         # Call Gora main smart contract and submit the oracle request.
         pt.InnerTxnBuilder.Begin(),
         pt.InnerTxnBuilder.MethodCall(
-            app_id=pt.Int(gora.main_app_id),
+            app_id=pt.Int(gora.main_app_info["id"]),
             method_signature="request" + gora.request_method_spec,
             args=[ request_spec_packed, dest_packed, request_type, request_key,
                    app_refs, asset_refs, account_refs, box_refs ],
