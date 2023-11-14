@@ -89,15 +89,35 @@ class SourceSpecUrl(pt.abi.NamedTuple):
     reserved_2: pt.abi.Field[pt.abi.Uint32]
     reserved_3: pt.abi.Field[pt.abi.Uint32]
 
-# Oracle request specification.
+# Oracle source specification for off-chain (type #3) requests.
+class SourceSpecOffChain(pt.abi.NamedTuple):
+    api_version: pt.abi.Field[pt.abi.Uint32] # Minimum off-chain API version required
+    spec_type: pt.abi.Field[pt.abi.Uint8] # executable specification type:
+                                          # 0 - in-place code,
+                                          # 1 - storage box (8-byte app ID followed by box name)
+                                          # 2 - URL
+    exec_spec: pt.abi.Field[pt.abi.DynamicBytes] # executable specification
+    exec_args: pt.abi.Field[pt.abi.DynamicArray[pt.abi.DynamicBytes]] # input arguments
+    reserved_0: pt.abi.Field[pt.abi.DynamicBytes] # reserved for future use
+    reserved_1: pt.abi.Field[pt.abi.DynamicBytes]
+    reserved_2: pt.abi.Field[pt.abi.Uint32]
+    reserved_3: pt.abi.Field[pt.abi.Uint32]
+
+# Oracle classic request specification.
 class RequestSpec(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpec]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
-# Oracle General URL (type #2) request specification.
+# Oracle general URL (type #2) request specification.
 class RequestSpecUrl(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpecUrl]]
+    aggregation: pt.abi.Field[pt.abi.Uint32]
+    user_data: pt.abi.Field[pt.abi.DynamicBytes]
+
+# Oracle off-chain (type #3) request specification.
+class RequestSpecOffChain(pt.abi.NamedTuple):
+    source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpecOffChain]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
@@ -242,12 +262,13 @@ def pt_oracle_request(request_type, request_key, specs_list_abi, dest_app,
                       dest_method, aggr, user_data, box_refs, app_refs,
                       asset_refs, account_refs):
 
-    spec_class = RequestSpec if request_type == 1 else RequestSpecUrl
+    spec_class = [ None, RequestSpec, RequestSpecUrl,
+                   RequestSpecOffChain ][request_type]
     return pt.Seq(
 
         (request_type_abi := pt.abi.Uint64()).set(request_type),
         (aggr_abi := pt.abi.Uint32()).set(aggr),
-            (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
+        (user_data_abi := pt.abi.DynamicBytes()).set(pt.Bytes(user_data)),
 
         (dest_app_abi := pt.abi.Uint64()).set(
             dest_app or pt.Global.current_application_id()),
@@ -339,6 +360,43 @@ def pt_query_general_url(request_key, dest_app, dest_method, specs_params,
 
     ])
 
+    return pt.Seq(result)
+
+"""
+Make an off-chain computation request.
+"""
+def pt_query_off_chain(request_key, dest_app, dest_method, api_version,
+                       spec_type, exec_spec, exec_args = [], user_data = "",
+                       box_refs = [], asset_refs = [], account_refs = [],
+                       app_refs = []):
+    result = [
+        (api_version_abi := pt.abi.Uint32()).set(api_version),
+        (spec_type_abi := pt.abi.Uint8()).set(spec_type),
+        (exec_spec_abi := pt.abi.DynamicBytes()).set(exec_spec),
+        (empty_string_abi := pt.abi.DynamicBytes()).set(""),
+        (zero_uin32_abi := pt.abi.Uint32()).set(0),
+    ]
+
+    exec_args_pre_abi = []
+    for arg in exec_args:
+        result.append((arg_abi := pt.abi.DynamicBytes()).set(arg)),
+        exec_args_pre_abi.append(arg_abi)
+
+    result.extend([
+        (exec_args_abi := pt.abi.make(pt.abi.DynamicArray[pt.abi.DynamicBytes])).set(
+            exec_args_pre_abi),
+
+        (spec_abi := pt.abi.make(SourceSpecOffChain)).set(
+            api_version_abi, spec_type_abi, exec_spec_abi,
+            exec_args_abi,
+            empty_string_abi, empty_string_abi, zero_uin32_abi, zero_uin32_abi,
+        ),
+        (specs_list_abi := pt.abi.make(pt.abi.DynamicArray[SourceSpecOffChain])).set(
+            [ spec_abi ]),
+        pt_oracle_request(3, request_key, specs_list_abi, dest_app, dest_method,
+                          0, user_data, box_refs, app_refs, asset_refs,
+                          account_refs),
+    ])
     return pt.Seq(result)
 
 """

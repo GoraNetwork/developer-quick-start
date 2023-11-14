@@ -168,6 +168,12 @@ shows how to use Gora for fetching data from arbitrary URLs. Data from URL
 responses can be extracted with a variety of methods such as JSONPath, XPath,
 regular expressions, or substring specifications.
 
+### Off-chain computation example: `example_offchain.py`
+
+[This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_offchain.py "Example app on Github")
+shows how to use Gora to perform arbitrary off-chain computation on data source
+values.
+
 ## Troubleshooting
 
 Algorand [Dapp Flow](https://app.dappflow.org/explorer/home) web app can be used
