@@ -18,6 +18,14 @@ example_url_app = bk.Application("ExampleUrl", state=ExampleUrlState)
 def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
     return gora.pt_init_gora()
 
+# Dummy methods used to increase opcode budget.
+@example_url_app.external
+def do_nothing_0():
+    return pt.Seq()
+@example_url_app.external
+def do_nothing_1():
+    return pt.Seq()
+
 # Response handler.
 @example_url_app.external
 def handle_oracle_url(resp_type: pt.abi.Uint32,
@@ -44,9 +52,15 @@ def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
                     "value_expr": "regex:>BNB is (?:up|down) ([.0-9]+)% in the last 24 hours",
                     "value_type": 1,
                 },
-            ]
+                {
+                    "url": "https://coinmarketcap.com/currencies/solana/",
+                    "value_expr": "regex:>Solana is (?:up|down) ([.0-9]+)% in the last 24 hours",
+                    "value_type": 1,
+                },
+            ],
+            2 # aggregate for maximum
         ),
     )
 
 if __name__ == "__main__":
-    gora.run_demo_app(example_url_app, query_oracle_url, True)
+    gora.run_demo_app(example_url_app, query_oracle_url, True, 2)

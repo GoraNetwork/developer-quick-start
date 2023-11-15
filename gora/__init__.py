@@ -151,7 +151,7 @@ def get_token_asset_id(algod_client):
 Setup an Algo deposit with Gora for a given account and app.
 """
 def setup_algo_deposit(algod_client, account, app_addr):
-    print("Setting up Algo deposit...")
+    print("Setting up Algo deposit")
     composer = asdk.atomic_transaction_composer.AtomicTransactionComposer()
     unsigned_payment_txn = asdk.transaction.PaymentTxn(
         sender=account.address,
@@ -178,7 +178,7 @@ def setup_algo_deposit(algod_client, account, app_addr):
 Setup a token deposit with Gora for a given account and app.
 """
 def setup_token_deposit(algod_client, account, app_addr):
-    print("Setting up token deposit...")
+    print("Setting up token deposit")
     token_asset_id = get_token_asset_id(algod_client)
     composer = asdk.atomic_transaction_composer.AtomicTransactionComposer()
     unsigned_transfer_txn = asdk.transaction.AssetTransferTxn(
@@ -488,7 +488,7 @@ def run_cli(cli_cmd, args = [], env = {}, is_rt = False):
 """
 Run a demo script.
 """
-def run_demo_app(demo_app, demo_method, is_numeric = False):
+def run_demo_app(demo_app, demo_method, is_numeric = False, budget_increase = 0):
 
     load_cfg()
 
@@ -507,7 +507,7 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     )
 
     # Deploy our app to the chain.
-    print("Deploying the app...")
+    print("Deploying the app")
     app_id, app_addr, txid = app_client.create()
     print("Done, txn ID:", txid)
     print("App ID:", app_id)
@@ -517,7 +517,7 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     print("Token asset ID:", token_asset_id)
 
     # Supply the app with GORA tokens and ALGO.
-    print("Initializing app for GORA...")
+    print("Initializing app for GORA")
     app_client.fund(1000000)
     app_client.call(
         method="init_gora",
@@ -530,27 +530,34 @@ def run_demo_app(demo_app, demo_method, is_numeric = False):
     req_key = uuid.uuid4().bytes;
     box_name = get_ora_box_name(req_key, app_addr)
 
-    print("Calling the app")
-    result = app_client.call(
+    atc = asdk.atomic_transaction_composer.AtomicTransactionComposer()
+    app_client.add_method_call(
+        atc=atc,
         method=demo_method,
         request_key=req_key,
         foreign_apps=[ main_app_info["id"] ],
         boxes=[ (main_app_info["id"], box_name) ],
-    )
+    );
 
-    req_round = result.tx_info["confirmed-round"]
-    print("Confirmed in round:", req_round)
-    print("Top txn ID:", result.tx_id)
+    if budget_increase:
+        print(f'Increasing opcode budget by adding {budget_increase} dummy txn(s)')
+        for i in range(0, budget_increase):
+            app_client.add_method_call(atc, f'do_nothing_{i}');
 
-    if not is_dev_nr_running():
+    print("Calling the app")
+    result = app_client.execute_atc(atc)
+
+    print("Confirmed in round:", result.confirmed_round)
+    print("Top txn ID:", result.tx_ids[-1])
+
+    if is_dev_nr_running():
+        print("Detected development Gora node running in the background")
+    else:
         print("Background development Gora node not detected, running one temporarily")
         run_cli("docker-start", [], {
             "GORACLE_CONFIG_FILE": cfg_path,
-            "GORACLE_DEV_ONLY_ROUND": str(req_round),
+            "GORACLE_DEV_ONLY_ROUND": str(result.confirmed_round),
         }, True)
-    else:
-        print("Detected development Gora node running in background")
-
 
     ora_value = get_ora_value(algod_client, app_id, account.address)
     if (ora_value is None):
