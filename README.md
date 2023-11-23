@@ -144,35 +144,51 @@ If your Gora development node is already running, the date-prefixed log messages
 above will be found in its output rather than in script's output above. Let us
 now look at example apps in more detail.
 
-### Basic example: `example_const.py`
+### Basic example: [`example_const.py`](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_const.py "Example app on Github")
 
-[This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_const.py "Example app on Github")
-demonstrates the use of Gora in most simple and detailed possible way. It makes a
-query to a special test source built into Gora that always returns the value of `1`.
-To make the example more explicit, oracle request is built without using Gora
-support libary. Since no external sources are queried, this example can even be run
-offline.
+Demonstrates the use of Gora in most simple and detailed way. It makes a query
+to a special built-in test source which always returns the value of `1`. The
+request is prepared without using Gora support libary, to make the process more
+explicit. Since no external sources are queried, this example can even be
+run offline.
 
-### Classic example: `example_classic.py`
+### Classic example: [`example_classic.py`](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_classic.py "Example app on Github")
 
-[This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_classic.py "Example app on Github")
-demonstrates the use of Gora with predefined data sources. These sources are
+Demonstrates the use of Gora with predefined data sources. These sources are
 pre-configured under fixed numeric ID's, with more of them potentially being
-added in future releases. This example uses Gora library to simplify oracle
-request building which is the recommended approach for production use.
+added in future releases. This and following examples use Gora Python library to
+simplify oracle request building. This is the recommended approach for
+production use. The classic example queries two currency rates and returns the
+maximum of the these. The source #7 is queried in both cases, but different
+sources can be used just as well. Source #7 uses a paid data provider that
+requires authentication. It is enabled by specifying `##signKey` as the second
+source parameter which makes Gora nodes generate a temporary *signature key*
+bound to the request and the node. The data source server being queried will
+check the validity of the request and the node's stake on the blockchain. This
+allows opening a data source to Gora users only without requiring them to
+provide authentication data or exposing it on the blockchain.
 
-### General URL example: `example_url.py`
+### General URL example: [`example_url.py`](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_url.py "Example app on Github")
 
-[This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_url.py "Example app on Github")
-shows how to use Gora for fetching data from arbitrary URLs. Data from URL
+Shows how to use Gora for fetching data from arbitrary URLs. Data from URL
 responses can be extracted with a variety of methods such as JSONPath, XPath,
-regular expressions, or substring specifications.
+regular expressions, or substring specifications. Two key differences from the
+previous example are the request parameters and dummy method calls. The latter
+is necessary for increasing op code budget of the request transaction, to
+accomodate the needs of more the flexible request type. To issue such requests
+with more URLs, you may need to add more `do_nothing_N()` dummy methods and
+increase 4th parameter of `run_demo_app()` to raise op code budget even more.
 
-### Off-chain computation example: `example_offchain.py`
+### Off-chain computation example: [`example_offchain.py`](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_offchain.py "Example app on Github")
 
-[This app](https://github.com/GoraNetwork/developer-quick-start/blob/main/example_offchain.py "Example app on Github")
-shows how to use Gora to perform arbitrary off-chain computation on data source
-values.
+Demonstrates Gora's arbitrary off-chain computation capability. It takes a
+UK postal code, geolocates it via third-party free API, then queries another
+free API and returns current air temperature at the location. The C source code
+accomplishing this can be found in `example_off_chain_multi_step.c`. The
+WebAssembly resulting from compilation of this code is included in the example
+app verbatim, as a byte string constant. For more off-chain executable
+specification options as well as other details on the off-chain computation
+feature, refer to Gora off-chain API documentation.
 
 ## Troubleshooting
 
