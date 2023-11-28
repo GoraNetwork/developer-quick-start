@@ -30,7 +30,7 @@ def get_env(var, defl=None):
     return val
 
 algod_defl_port = "4001"
-cli_tool_url = "https://download.goracle.io/latest-dev/linux/goracle"
+cli_tool_url = "https://download.goracle.io/latest-release/linux/goracle"
 cli_tool_path = "./goracle"
 cfg_path = "./.goracle"
 
