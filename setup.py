@@ -3,6 +3,7 @@ import stat
 import urllib.request
 import http
 import re
+import json
 import gora
 
 def get_algod_port():
@@ -16,7 +17,8 @@ def get_algod_port():
                 contents = urllib.request.urlopen(url + "/versions").read()
             except:
                 print(f'Unable to query "{url}"')
-            if '"genesis_id":"sandnet-' in str(contents):
+            versions = json.loads(contents)
+            if re.match(r"^(sand|docker)net-", versions["genesis_id"]):
                 print(f'Found an Algorand localnet node at "{url}"')
                 return int(port)
             else:
