@@ -30,12 +30,13 @@ def get_env(var, defl=None):
     return val
 
 algod_defl_port = "4001"
-cli_tool_url = "https://download.gora.io/latest-release/linux/goracle"
-cli_tool_path = "./goracle"
-cfg_path = "./.goracle"
+cli_tool_ver = get_env("GORA_DEV_VER", "latest-release")
+cli_tool_url = f'https://download.gora.io/{cli_tool_ver}/linux/gora'
+cli_tool_path = "./gora_cli"
+cfg_path = "./.gora"
 
-gora_token_deposit_amount = int(get_env("GORA_TOKEN_DEPOSIT_AMOUNT", 10_000_000_000))
-gora_algo_deposit_amount = int(get_env("GORA_ALGO_DEPOSIT_AMOUNT", 10_000_000_000))
+gora_token_deposit_amount = int(get_env("GORA_DEV_TOKEN_DEPOSIT", 10_000_000_000))
+gora_algo_deposit_amount = int(get_env("GORA_DEV_ALGO_DEPOSIT", 10_000_000_000))
 
 gora_main_abi_spec = open("./main-contract.json", "r").read()
 gora_main_app = asdk.abi.Contract.from_json(gora_main_abi_spec)
@@ -470,7 +471,7 @@ def get_ora_value(algod_client, app_id, addr, key_name = "last_oracle_value",
 Return true if dev NR container is running, false otherwise.
 """
 def is_dev_nr_running():
-    output = run_cli("docker-status", [], { "GORACLE_CONFIG_FILE": cfg_path })
+    output = run_cli("docker-status", [], { "GORA_CONFIG_FILE": cfg_path })
     return bool(re.search("\nRunning\n$", output))
 
 """
@@ -555,8 +556,8 @@ def run_demo_app(demo_app, demo_method, is_numeric = False, budget_increase = 0)
     else:
         print("Background development Gora node not detected, running one temporarily")
         run_cli("docker-start", [], {
-            "GORACLE_CONFIG_FILE": cfg_path,
-            "GORACLE_DEV_ONLY_ROUND": str(result.confirmed_round),
+            "GORA_CONFIG_FILE": cfg_path,
+            "GORA_DEV_ONLY_ROUND": str(result.confirmed_round),
         }, True)
 
     ora_value = get_ora_value(algod_client, app_id, account.address)

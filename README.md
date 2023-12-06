@@ -60,9 +60,9 @@ it temporarily from a script that executes your application test cycle. This is
 what example apps in this repository do; details can be gleaned from their
 source code.  Another way is to run the node continuously for the duration of
 your development session. To start it with output to the terminal, change to
-the checkout directory and run: `GORACLE_CONFIG_FILE=./.goracle ./goracle
+the checkout directory and run: `GORA_CONFIG_FILE=./.gora ./gora
 docker-start`.  To make it run in the background, add `--background` switch to the
-above command; to see node's log messages, run `docker logs goracle-nr-dev`.
+above command; to see node's log messages, run `docker logs gora-nr-dev`.
 
 **Warning!** *Do not add more nodes with non-zero stakes to this setup. It can
 break oracle consensus and stop request processing.*
@@ -83,7 +83,7 @@ are current.*
 To run an example app, execute it with Python, e.g. `python example_const.py`.
 You should get an output like:
 ```
-Loading config from "./.goracle"
+Loading config from "./.gora"
 Main app ID: 1004
 Using local account ETKGKDOICCD7RQRX7TX24RAAM2WTHP7L4EGIORVLJEKZO7FWNY27RUTF3E
 Deploying the app...
@@ -97,18 +97,18 @@ Setting up token deposit...
 Calling the app
 Confirmed in round: 16598
 Top txn ID: USH3IB32OH5QQHGKHQGWLTW46QCOEKWQGCJ472G6FXG2VG2LLHPA
-Running: "./goracle docker-status"
+Running: "./gora docker-status"
 Background development Gora node not detected, running one temporarily
-Running: "./goracle docker-start"
-Goracle CLI tool, version N/A
-goracle-nr-dev
-2023-11-13T13:28:26.679Z DEBUG Applying GORACLE_CONFIG environment variable
-2023-11-13T13:28:27.557Z INFO  Starting Goracle Node Runner
+Running: "./gora docker-start"
+Gora CLI tool, version N/A
+gora-nr-dev
+2023-11-13T13:28:26.679Z DEBUG Applying GORA_CONFIG environment variable
+2023-11-13T13:28:27.557Z INFO  Starting Gora Node Runner
 2023-11-13T13:28:27.909Z INFO  Version: "1.1.30"
 2023-11-13T13:28:27.909Z INFO  Built on: "Sat, 11 Nov 2023 22:07:48 GMT"
 2023-11-13T13:28:27.909Z INFO  Revision: "59652555bf372e85185d8cad47b99d3a8eb032ea"
 2023-11-13T13:28:27.909Z INFO  Smart contracts revision: "1535e07cc84cdfea2ac8d0ec4bcb854c9f7d21ba"
-2023-11-13T13:28:27.909Z INFO  Docker image: "107782235753.dkr.ecr.eu-central-1.amazonaws.com/goracle-nr:v1.1.30"
+2023-11-13T13:28:27.909Z INFO  Docker image: "107782235753.dkr.ecr.eu-central-1.amazonaws.com/gora-nr:v1.1.30"
 2023-11-13T13:28:27.910Z INFO  Docker image hash: "705d77c0330c8a1ddd07c1c2618e0ca5cf1debd583e4fa0b49d9f4fa2398a07b"
 2023-11-13T13:28:27.986Z DEBUG Blockchain server host is local, changing it to "host.docker.internal" to make it work under Docker
 2023-11-13T13:28:28.151Z INFO  Using Algorand API server: "http://host.docker.internal:4001/", port: "4001"
