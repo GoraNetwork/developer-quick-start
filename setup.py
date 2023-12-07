@@ -6,6 +6,9 @@ import re
 import json
 import gora
 
+"""
+Return Algorand API server port.
+"""
 def get_algod_port():
     while True:
         prompt = f'What is Algorand sandbox port number [{gora.algod_defl_port}]? '
@@ -26,6 +29,9 @@ def get_algod_port():
         else:
             print("Input not recognized as valid port number")
 
+"""
+Return boolean response to a Yes/No question.
+"""
 def ask_yes_no(question, defl_val = None):
     while True:
       if defl_val is None:
@@ -45,6 +51,9 @@ def ask_yes_no(question, defl_val = None):
             return False;
       print("Please answer Y[es] or N[o]")
 
+"""
+Download CLI tool binary and make it executable.
+"""
 def init_cli_tool():
     if os.path.isfile(gora.cli_tool_path):
         if not ask_yes_no(f'CLI tool binary "{gora.cli_tool_path}" already exists, reuse', False):
@@ -56,6 +65,9 @@ def init_cli_tool():
     print(f'Making Gora CLI tool binary "{gora.cli_tool_path}" executable')
     os.chmod(gora.cli_tool_path, 0o744)
 
+"""
+Run dev environment initialization via CLI tool.
+"""
 def init_dev_env(algod_port):
     server = f'http://localhost:{algod_port}'
     gora.run_cli("dev-init", [ "--dest-server", server ],

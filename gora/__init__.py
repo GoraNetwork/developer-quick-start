@@ -20,6 +20,9 @@ script_dir, script_file = os.path.split(os.path.abspath(__file__))
 os.chdir(script_dir)
 os.chdir("..")
 
+"""
+Return environment variable value or a default if it's not defined.
+"""
 def get_env(var, defl=None):
     val = os.environ.get(var)
     if val is None:
@@ -69,13 +72,17 @@ def load_cfg():
 # Definitions of structured data types based on Algorand ABI types that are
 # used by the oracle.
 
-# Oracle source specification.
+"""
+Oracle source specification for classic (type #1) requests.
+"""
 class SourceSpec(pt.abi.NamedTuple):
     source_id: pt.abi.Field[pt.abi.Uint32]
     source_arg_list: pt.abi.Field[pt.abi.DynamicArray[pt.abi.DynamicBytes]]
     max_age: pt.abi.Field[pt.abi.Uint32]
 
-# Oracle source specification for General URL (type #2) requests.
+"""
+Oracle source specification for General URL (type #2) requests.
+"""
 class SourceSpecUrl(pt.abi.NamedTuple):
     url: pt.abi.Field[pt.abi.DynamicBytes]
     auth_url: pt.abi.Field[pt.abi.DynamicBytes]
@@ -90,7 +97,9 @@ class SourceSpecUrl(pt.abi.NamedTuple):
     reserved_2: pt.abi.Field[pt.abi.Uint32]
     reserved_3: pt.abi.Field[pt.abi.Uint32]
 
-# Oracle source specification for off-chain (type #3) requests.
+"""
+Oracle source specification for off-chain (type #3) requests.
+"""
 class SourceSpecOffChain(pt.abi.NamedTuple):
     api_version: pt.abi.Field[pt.abi.Uint32] # Minimum off-chain API version required
     spec_type: pt.abi.Field[pt.abi.Uint8] # executable specification type:
@@ -104,30 +113,40 @@ class SourceSpecOffChain(pt.abi.NamedTuple):
     reserved_2: pt.abi.Field[pt.abi.Uint32]
     reserved_3: pt.abi.Field[pt.abi.Uint32]
 
-# Oracle classic request specification.
+"""
+Oracle classic (type #1) request specification.
+"""
 class RequestSpec(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpec]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
-# Oracle general URL (type #2) request specification.
+"""
+Oracle General URL (type #2) request specification.
+"""
 class RequestSpecUrl(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpecUrl]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
-# Oracle off-chain (type #3) request specification.
+"""
+Oracle off-chain (type #3) request specification.
+"""
 class RequestSpecOffChain(pt.abi.NamedTuple):
     source_specs: pt.abi.Field[pt.abi.DynamicArray[SourceSpecOffChain]]
     aggregation: pt.abi.Field[pt.abi.Uint32]
     user_data: pt.abi.Field[pt.abi.DynamicBytes]
 
-# Specification of destination called by the oracle when returning data.
+"""
+Specification of destination called by the oracle when returning data.
+"""
 class DestinationSpec(pt.abi.NamedTuple):
     app_id: pt.abi.Field[pt.abi.Uint64]
     method: pt.abi.Field[pt.abi.DynamicBytes]
 
-# Oracle response body.
+"""
+Oracle response body.
+"""
 class ResponseBody(pt.abi.NamedTuple):
     request_id: pt.abi.Field[pt.abi.StaticBytes[L[32]]]
     requester_addr: pt.abi.Field[pt.abi.Address]
@@ -136,7 +155,9 @@ class ResponseBody(pt.abi.NamedTuple):
     error_code: pt.abi.Field[pt.abi.Uint32]
     source_errors: pt.abi.Field[pt.abi.Uint64]
 
-# Storage box specification.
+"""
+Storage box specification.
+"""
 class BoxType(pt.abi.NamedTuple):
     key: pt.abi.Field[pt.abi.DynamicBytes]
     app_id: pt.abi.Field[pt.abi.Uint64]
