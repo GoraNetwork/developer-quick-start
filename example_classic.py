@@ -18,7 +18,7 @@ def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
 # Response handler.
 @example_classic_app.external
 def handle_oracle_classic(resp_type: pt.abi.Uint32,
-                        resp_body_bytes: pt.abi.DynamicBytes):
+                          resp_body_bytes: pt.abi.DynamicBytes):
     return pt.Seq(
         gora.pt_auth_dest_call(),
         gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
