@@ -163,6 +163,56 @@ class BoxType(pt.abi.NamedTuple):
     app_id: pt.abi.Field[pt.abi.Uint64]
 
 """
+Gora-enabled Beaker application.
+"""
+class Application(bk.Application):
+
+    """
+    Add "init_gora" ABI method to setup the app for Gora use.
+    """
+    def __init__(self, name, state):
+        super().__init__(name, state=state)
+        @self.external
+        def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
+            return pt_init_gora()
+
+    """
+    Extend Beaker's "external()" decorator with Gora response verification and
+    decoding.
+    """
+    def gora_handler(self, handler_func, **kwargs):
+        def abi_handler(resp_type: pt.abi.Uint32,
+                        resp_body_bytes: pt.abi.DynamicBytes):
+            return pt.Seq(
+                pt_auth_dest_call(),
+                pt_smart_assert(resp_type.get() == pt.Int(1)),
+                (resp_body := pt.abi.make(ResponseBody)).decode(resp_body_bytes.get()),
+                resp_body.request_id.store_into(
+                    request_id := pt.abi.make(pt.abi.StaticBytes[L[32]])
+                ),
+                resp_body.requester_addr.store_into(
+                    requester_addr := pt.abi.make(pt.abi.Address)
+                ),
+                resp_body.oracle_value.store_into(
+                    oracle_value := pt.abi.make(pt.abi.DynamicBytes)
+                ),
+                resp_body.user_data.store_into(
+                    user_data := pt.abi.make(pt.abi.DynamicBytes)
+                ),
+                resp_body.error_code.store_into(
+                    error_code := pt.abi.make(pt.abi.Uint32)
+                ),
+                resp_body.source_errors.store_into(
+                    source_errors := pt.abi.make(pt.abi.Uint64)
+                ),
+                handler_func(request_id.get(), requester_addr.get(),
+                             oracle_value.get(), user_data.get(),
+                             error_code.get(), source_errors.get()),
+            )
+        self.external(abi_handler, name=handler_func.__name__, **kwargs)
+
+
+"""
 Return Gora token asset ID
 """
 def get_token_asset_id(algod_client):

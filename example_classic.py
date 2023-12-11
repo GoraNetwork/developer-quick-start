@@ -8,25 +8,15 @@ class ExampleClassicState:
         descr="Last oracle value received"
     )
 
-example_classic_app = bk.Application("ExampleClassic", state=ExampleClassicState)
-
-# Opt in to Gora token asset, necessary to make oracle requests.
-@example_classic_app.external
-def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
-    return gora.pt_init_gora()
+example_classic_app = gora.Application("ExampleClassic", state=ExampleClassicState)
 
 # Response handler.
-@example_classic_app.external
-def handle_oracle_classic(resp_type: pt.abi.Uint32,
-                          resp_body_bytes: pt.abi.DynamicBytes):
+@example_classic_app.gora_handler
+def handle_oracle_classic(request_id: pt.Bytes, requester_addr: pt.Bytes,
+                          oracle_value: pt.Bytes, user_data: pt.Bytes,
+                          error_code: pt.Int, source_errors: pt.Int):
     return pt.Seq(
-        gora.pt_auth_dest_call(),
-        gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
-        (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
-        resp_body.oracle_value.store_into(
-            oracle_value := pt.abi.make(pt.abi.DynamicBytes)
-        ),
-        example_classic_app.state.last_oracle_value.set(oracle_value.get())
+        example_classic_app.state.last_oracle_value.set(oracle_value),
     )
 
 # Query multiple classic sources with aggregation.
