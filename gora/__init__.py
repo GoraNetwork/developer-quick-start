@@ -170,11 +170,17 @@ class Application(bk.Application):
     """
     Add "init_gora" ABI method to setup the app for Gora use.
     """
-    def __init__(self, name, state):
+    def __init__(self, name, state, op_boost = 0):
         super().__init__(name, state=state)
+
+        # Add method to initialize the app for using Gora assets.
         @self.external
         def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
             return pt_init_gora()
+
+        # Add dummy methods to use in opcode budget boost trick.
+        for i in range(0, op_boost):
+            self.external(lambda: pt.Seq(), name=f'op_booster_{i}')
 
     """
     Extend Beaker's "external()" decorator with Gora response verification and
@@ -614,7 +620,7 @@ def run_demo_app(demo_app, demo_method, is_numeric = False, budget_increase = 0)
     if budget_increase:
         print(f'Increasing opcode budget by adding {budget_increase} dummy txn(s)')
         for i in range(0, budget_increase):
-            app_client.add_method_call(atc, f'do_nothing_{i}');
+            app_client.add_method_call(atc, f'op_booster_{i}');
 
     print("Calling the app")
     result = app_client.execute_atc(atc)

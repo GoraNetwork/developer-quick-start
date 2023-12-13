@@ -11,33 +11,19 @@ class ExampleUrlState:
         descr="Last oracle value received"
     )
 
-example_url_app = bk.Application("ExampleUrl", state=ExampleUrlState)
+# How much to increase opcode budget in application test call.
+# This many dummy methods will be defined and included in call txn group.
+op_boost = 2
 
-# Opt in to Gora token asset, necessary to make oracle requests.
-@example_url_app.external
-def init_gora(token_ref: pt.abi.Asset, main_app_ref: pt.abi.Application):
-    return gora.pt_init_gora()
-
-# Dummy methods used to increase opcode budget.
-@example_url_app.external
-def do_nothing_0():
-    return pt.Seq()
-@example_url_app.external
-def do_nothing_1():
-    return pt.Seq()
+example_url_app = gora.Application("ExampleUrl", ExampleUrlState, op_boost)
 
 # Response handler.
-@example_url_app.external
-def handle_oracle_url(resp_type: pt.abi.Uint32,
-                        resp_body_bytes: pt.abi.DynamicBytes):
+@example_url_app.gora_handler
+def handle_oracle_url(request_id: pt.Bytes, requester_addr: pt.Bytes,
+                          oracle_value: pt.Bytes, user_data: pt.Bytes,
+                          error_code: pt.Int, source_errors: pt.Int):
     return pt.Seq(
-        gora.pt_auth_dest_call(),
-        gora.pt_smart_assert(resp_type.get() == pt.Int(1)),
-        (resp_body := pt.abi.make(gora.ResponseBody)).decode(resp_body_bytes.get()),
-        resp_body.oracle_value.store_into(
-            oracle_value := pt.abi.make(pt.abi.DynamicBytes)
-        ),
-        example_url_app.state.last_oracle_value.set(oracle_value.get())
+        example_url_app.state.last_oracle_value.set(oracle_value),
     )
 
 # Query a General URL source with regex parsing.
@@ -63,4 +49,4 @@ def query_oracle_url(request_key: pt.abi.DynamicBytes) -> pt.Expr:
     )
 
 if __name__ == "__main__":
-    gora.run_demo_app(example_url_app, query_oracle_url, True, 2)
+    gora.run_demo_app(example_url_app, query_oracle_url, True, op_boost)
