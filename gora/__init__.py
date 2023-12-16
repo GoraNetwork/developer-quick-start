@@ -15,11 +15,6 @@ import algosdk as asdk
 from typing import Literal as L
 from .inline import InlineAssembly
 
-# Make checkout directory current to allow safe multiple checkouts usage.
-script_dir, script_file = os.path.split(os.path.abspath(__file__))
-os.chdir(script_dir)
-os.chdir("..")
-
 """
 Return environment variable value or a default if it's not defined.
 """
@@ -35,13 +30,14 @@ def get_env(var, defl=None):
 algod_defl_port = "4001"
 cli_tool_ver = get_env("GORA_DEV_VER", "latest-release")
 cli_tool_url = f'https://download.gora.io/{cli_tool_ver}/linux/gora'
-cli_tool_path = "./gora_cli"
-cfg_path = "./.gora"
+cli_tool_path = get_env("GORA_DEV_CLI_TOOL", "./gora_cli")
+cfg_path = get_env("GORA_DEV_CONFIG_FILE", "./.gora")
 
 gora_token_deposit_amount = int(get_env("GORA_DEV_TOKEN_DEPOSIT", 10_000_000_000))
 gora_algo_deposit_amount = int(get_env("GORA_DEV_ALGO_DEPOSIT", 10_000_000_000))
 
-gora_main_abi_spec = open("./main-contract.json", "r").read()
+script_dir, script_file = os.path.split(os.path.abspath(__file__))
+gora_main_abi_spec = open(script_dir + "/main-contract.json", "r").read()
 gora_main_app = asdk.abi.Contract.from_json(gora_main_abi_spec)
 
 # ABI method argument specs to build signatures for oracle method calls.
