@@ -4,7 +4,7 @@ import urllib.request
 import http
 import re
 import json
-import gora
+import subprocess
 
 """
 Return Algorand API server port.
@@ -77,6 +77,14 @@ print("This will set up Gora development environment.")
 print("Existing development environment settings may be overwritten.")
 if not ask_yes_no("Continue", True):
     exit()
+
+try:
+    import gora
+except ImportError:
+    if ask_yes_no("Gora Python module is required to continue, install", True):
+        cmd = [ "pip", "install", "gora" ]
+        print(f'Running: "{" ".join(cmd)}"')
+        subprocess.check_call(cmd, env=os.environ)
 
 if not ask_yes_no("Do you have Algorand sandbox up and running now"):
     print("You must set up and start Algorand Sandbox to proceed.")
