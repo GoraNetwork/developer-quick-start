@@ -78,13 +78,17 @@ print("Existing development environment settings may be overwritten.")
 if not ask_yes_no("Continue", True):
     exit()
 
+skip_module_install = False
 try:
     import gora
 except ImportError:
-    if ask_yes_no("Gora Python module is required to continue, install", True):
-        cmd = [ "pip", "install", "gora" ]
-        print(f'Running: "{" ".join(cmd)}"')
-        subprocess.check_call(cmd, env=os.environ)
+    if not ask_yes_no("Gora Python module is required to continue, install", True):
+        skip_module_install = True
+
+if not skip_module_install:
+    cmd = [ "pip", "install", "-U", "gora" ]
+    print(f'Running: "{" ".join(cmd)}"')
+    subprocess.check_call(cmd, env=os.environ)
 
 if not ask_yes_no("Do you have Algorand sandbox up and running now"):
     print("You must set up and start Algorand Sandbox to proceed.")
