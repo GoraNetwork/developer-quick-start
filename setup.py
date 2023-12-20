@@ -2,32 +2,42 @@ import os
 import stat
 import urllib.request
 import http
+import socket
 import re
 import json
 import subprocess
 
 """
+Check if Algod daemon is running on given localhost port.
+"""
+def check_algod_port(port):
+    url = "http://localhost:" + port
+    contents = ""
+    print(f'Checking URL "{url}" for Algorand localnet node')
+    try:
+        contents = urllib.request.urlopen(url + "/versions", None, 2).read()
+    except:
+        print("Failed to connect")
+        return False
+
+    versions = json.loads(contents)
+    if re.match(r"^(sand|docker)net-", versions["genesis_id"]):
+        print("Algorand localnet node found")
+        return True
+    print("Algorand localnet node not detected")
+    return False
+
+"""
 Return Algorand API server port.
 """
 def get_algod_port():
+    port = gora.algod_defl_port
     while True:
-        prompt = f'What is Algorand sandbox port number [{gora.algod_defl_port}]? '
-        port = input(prompt) or gora.algod_defl_port
-        if port and int(port) > 1024 and int(port) < 65535:
-            url = "http://localhost:" + port
-            contents = ""
-            try:
-                contents = urllib.request.urlopen(url + "/versions").read()
-            except:
-                print(f'Unable to query "{url}"')
-            versions = json.loads(contents)
-            if re.match(r"^(sand|docker)net-", versions["genesis_id"]):
-                print(f'Found an Algorand localnet node at "{url}"')
-                return int(port)
-            else:
-                print(f'Could not find an Algorand localnet node at "{url}"')
-        else:
+        if int(port) < 1024 or int(port) > 65535:
             print("Input not recognized as valid port number")
+        elif check_algod_port(port):
+            return True
+        port = input("What is Algorand sandbox port number? ")
 
 """
 Return boolean response to a Yes/No question.
@@ -90,7 +100,7 @@ if not skip_module_install:
     print(f'Running: "{" ".join(cmd)}"')
     subprocess.check_call(cmd, env=os.environ)
 
-if not ask_yes_no("Do you have Algorand sandbox up and running now"):
+if not ask_yes_no("Do you have Algorand sandbox up and running now", True):
     print("You must set up and start Algorand Sandbox to proceed.")
     print("More info at: https://github.com/algorand/sandbox")
     exit()
