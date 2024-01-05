@@ -36,7 +36,7 @@ def get_algod_port():
         if int(port) < 1024 or int(port) > 65535:
             print("Input not recognized as valid port number")
         elif check_algod_port(port):
-            return True
+            return port
         port = input("What is Algorand sandbox port number? ")
 
 """
