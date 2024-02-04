@@ -60,7 +60,7 @@ it temporarily from a script that executes your application test cycle. This is
 what example apps in this repository do; details can be gleaned from their
 source code.  Another way is to run the node continuously for the duration of
 your development session. To start it with output to the terminal, change to
-the checkout directory and run: `GORA_CONFIG_FILE=./.gora ./gora
+the checkout directory and run: `GORA_CONFIG_FILE=./.gora ./gora_cli
 docker-start`.  To make it run in the background, add `--background` switch to the
 above command; to see node's log messages, run `docker logs gora-nr-dev`.
 
