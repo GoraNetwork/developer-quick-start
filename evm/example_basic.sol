@@ -11,7 +11,7 @@ contract GoraExample {
   string constant exampleUrl = "http://echo.jsontest.com/testfield/testvalue";
 
   // Expression to extract oracle value from the response.
-  string constant exampleValueExpr = "json:$.testfield";
+  string constant exampleValueExpr = "jsonpath:$.testfield";
 
   // Destination smart contract method name to call with the response.
   string constant exampleDestMethod = "receiveGoraResponse";

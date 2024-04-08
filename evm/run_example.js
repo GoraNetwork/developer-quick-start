@@ -21,7 +21,7 @@ const solcCmd = "./solc";
 const solcOpts = [ "--no-color", "--combined-json", "abi,bin" ];
 
 // Read a smart contract address file.
-function readAddr(name) {
+function readContractAddr(name) {
 
   const file = name + ".addr";
   return Fs.existsSync(file) ? Fs.readFileSync(file, "ascii") : null;
@@ -39,38 +39,30 @@ async function enableContractLogs(contract, name) {
   });
 }
 
-// Return true if Gora main contract is available, false otherwise.
-async function checkGoraContract(signer) {
+// Load/deploy Gora main contract and return its instance.
+async function setupGoraContract(signer) {
 
-  const addr = readAddr("main");
-  if (!addr)
-    return;
+  let res;
+  const addr = readContractAddr("main");
 
-  const [ abi ] = loadContract("main");
-  const contract = new Ethers.Contract(addr, abi, signer);
-  await enableContractLogs(contract, "main");
+  if (addr) {
+    const [ abi ] = loadContract("main");
+    res = new Ethers.Contract(addr, abi, signer);
 
-  let hasFailed;
-  try {
+    // Check that main contract is really at this address. That will not be
+    // the case if Hardhat has been restarted.
     console.log(`Checking for Gora contract at "${addr}"`);
-    await (await contract.testLog()).wait();
+    let goraName;
+    try { goraName = await res.goraName() } catch (e) {};
+    if (goraName != "main")
+      res = undefined;
   }
-  catch (e) {
-    hasFailed = true;
-  }
 
-  return hasFailed ? false : contract;
-}
+  if (!res)
+    res = await deploy({ signer, name: "main" });
 
-// Deploy Gora smart contracts if they aren't already.
-async function deployGoraMaybe(signer) {
-
-  const contract = await checkGoraContract(signer);
-  if (contract)
-    return contract;
-
-  console.log(`No Gora main contract detected, deploying anew`);
-  return await deploy({ signer, name: "main" });
+  await enableContractLogs(res, "main");
+  return res;
 }
 
 // Return true if dev Gora node is running, false otherwise.
@@ -141,7 +133,7 @@ async function connectToApi(url) {
 async function runExample(apiUrl, name) {
 
   let [ signer, provider ] = await connectToApi(apiUrl);
-  const goraContract = await deployGoraMaybe(signer);
+  const goraContract = await setupGoraContract(signer);
 
   const solName = `example_${name}.sol`;
   const solArgs = [ ...solcOpts, solName ];
@@ -155,7 +147,7 @@ async function runExample(apiUrl, name) {
   const exampleContract = await deploy({
     signer, compiled,
     name: `example_${name}`,
-    args: [ readAddr("main") ],
+    args: [ readContractAddr("main") ],
   });
   await enableContractLogs(exampleContract, "example");
 
@@ -205,12 +197,13 @@ async function runExample(apiUrl, name) {
 
   const lastReqId = await exampleContract.lastReqId();
   if (lastReqId == createdReqId)
-    console.log("Success: response received by destination method.");
+    console.log("Success, response received by destination method");
   else
-    console.log("Fail: response NOT received by destination method");
+    console.log("Fail, response NOT received by destination method");
 
-  const lastValue = await exampleContract.lastValue();
-  console.log("Response value:", lastValue);
+  const lastValueRaw = await exampleContract.lastValue();
+  const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
+  console.log("Response value:", lastValueStr);
 }
 
 const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || "http://127.0.0.1:8545/";
