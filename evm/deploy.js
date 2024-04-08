@@ -3,32 +3,13 @@
 const Ethers = require("ethers");
 const Fs = require("fs");
 
-async function deploy({ apiUrl, name, addrFile, compiled, args }) {
+function loadContract(name, compiled) {
 
   if (!compiled) {
     const file = name + ".compiled";
     console.log("Reading compiled contract (combined JSON):", file);
     compiled = JSON.parse(Fs.readFileSync(file));
   }
-
-  console.log("EVM API endpoint:", apiUrl);
-  const provider = new Ethers.JsonRpcProvider(apiUrl);
-  console.log("At block:", await provider.getBlockNumber());
-
-  let signer;
-  const keyFile = "deploy_key.txt";
-  if (Fs.existsSync(keyFile)) {
-    console.log(`Reading signer's private key from "${keyFile}"`);
-    const privKeyHex = Fs.readFileSync(keyFile, "utf8");
-    signer = new Ethers.Wallet(privKeyHex, provider);
-  }
-  else {
-    console.log("No key file, getting a signer automatically");
-    signer = await provider.getSigner();
-  }
-
-  const signerAddr = await signer.getAddress();
-  console.log("Signer:", signerAddr);
 
   const solName = name + ".sol";
   const nameKey = Object.keys(compiled.contracts)
@@ -40,15 +21,45 @@ async function deploy({ apiUrl, name, addrFile, compiled, args }) {
   const abi = typeof contractInfo.abi == "string"
               ? JSON.parse(contractInfo.abi) : contractInfo.abi;
   const bin = Buffer.from(contractInfo.bin, "hex");
+  return [ abi, bin ];
+}
+
+async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
+
+  let provider
+  if (signer)
+    provider = signer.provider;
+  else {
+    console.log("EVM API endpoint:", apiUrl);
+    provider = new Ethers.JsonRpcProvider(apiUrl);
+  }
+  console.log("At block:", await provider.getBlockNumber());
+
+  if (!signer) {
+    const keyFile = "deploy_key.txt";
+    if (Fs.existsSync(keyFile)) {
+      console.log(`Reading signer's private key from "${keyFile}"`);
+      const privKeyHex = Fs.readFileSync(keyFile, "utf8");
+      signer = new Ethers.Wallet(privKeyHex, provider);
+    }
+    else {
+      console.log("No key file, getting a signer automatically");
+      signer = await provider.getSigner();
+    }
+  }
+
+  const signerAddr = await signer.getAddress();
+  console.log("Signer:", signerAddr);
 
   const constrArgs = args || [];
   for (const varName in process.env) {
-    const prefix = "EVM_DEPLOY_CONSTR_ARG_";
+    const prefix = "GORA_DEV_EVM_DEPLOY_CONSTR_ARG_";
     if (varName.startsWith(prefix))
       constrArgs[Number(varName.substr(prefix.length))] = process.env[varName];
   }
+  console.log(`Deploying "${name}.sol" with ${constrArgs.length || 'no'} argument(s)`);
 
-  console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
+  const [ abi, bin ] = loadContract(name, compiled);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
   await contract.waitForDeployment();
@@ -59,13 +70,17 @@ async function deploy({ apiUrl, name, addrFile, compiled, args }) {
   addrFile ||= name + ".addr";
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
+
+  return contract;
 }
 
 if (module.parent)
-  Object.assign(exports, { deploy });
+  Object.assign(exports, { deploy, loadContract });
 else {
-  if (process.argv.length > 3)
-    deploy(...process.argv);
+  if (process.argv.length > 3) {
+    const [ , , apiUrl, name, addrFile ] = process.argv;
+    deploy({ apiUrl, name, addrFile });
+  }
   else
     console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file]");
 }
