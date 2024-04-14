@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 contract GoraExample {
 
   // Gora request method signature.
-  string constant goraRequestSigSrc = "request(string,string,address,string,bytes)";
+  string constant goraRequestSigSrc = "request(uint8,string,string,address,string,bytes)";
 
   // URL from which to fetch oracle data.
   string constant exampleUrl = "http://echo.jsontest.com/testfield/testvalue";
@@ -22,7 +22,6 @@ contract GoraExample {
   address goraAddr; // Gora smart contract address
   bytes public lastValue; // last value received from Gora
   bytes32 public lastReqId; // Gora request ID for the last value received
-  
 
   // Emit debug log message event.
   function DEBUG(string memory str, uint num, bytes memory bin) internal {
@@ -47,7 +46,7 @@ contract GoraExample {
     address exampleDestAddr = address(this);
 
     bytes memory reqSig = abi.encodeWithSignature(goraRequestSigSrc,
-      exampleUrl, exampleValueExpr, exampleDestAddr, exampleDestMethod,
+      2, exampleUrl, exampleValueExpr, exampleDestAddr, exampleDestMethod,
       exampleUserData
     );
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
@@ -69,6 +68,7 @@ contract GoraExample {
                                uint256 srcErrors) public {
 
     DEBUG("Gora response received", 0, bytes32ToBytes(reqId));
+
     // Save received variables for further inspection.
     lastValue = value;
     lastReqId = reqId;
