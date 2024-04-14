@@ -244,11 +244,11 @@ async function runExample(apiUrl, name) {
 
   const lastValueRaw = await exampleContract.lastValue();
   const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
-  console.log("Response value:", lastValueStr);
+  console.log(`Response value: "${lastValueStr}"`);
 
   if (evmNodeProcess) {
     console.log("Stopping temporary Hardhat node");
-    evmNodeProcess.kill("SIGKILL"); // SIGTERM not enough due to subprocesses
+    evmNodeProcess.kill("SIGKILL"); // SIGTERM is not enough due to subprocesses
   }
 }
 
