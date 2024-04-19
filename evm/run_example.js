@@ -187,10 +187,13 @@ async function runExample(apiUrl, name) {
     throw solRes.stderr.toString();
 
   const compiled = JSON.parse(solRes.stdout.toString());
+  const args = [ readContractAddr("main") ];
+  if (name == "off_chain")
+    args.push(Fs.readFileSync("off_chain_example.wasm"));
+
   const exampleContract = await deploy({
-    signer, compiled,
+    signer, compiled, args,
     name: `example_${name}`,
-    args: [ readContractAddr("main") ],
   });
   await enableContractLogs(exampleContract, "example");
 
@@ -244,12 +247,15 @@ async function runExample(apiUrl, name) {
 
   const lastValueRaw = await exampleContract.lastValue();
   const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
-  console.log("Response value:", lastValueStr);
+  console.log(`Response value: "${lastValueStr}"`);
 
   if (evmNodeProcess) {
     console.log("Stopping temporary Hardhat node");
-    evmNodeProcess.kill("SIGKILL"); // SIGTERM not enough due to subprocesses
+    evmNodeProcess.kill("SIGKILL"); // SIGTERM is not enough due to subprocesses
   }
 }
 
-runExample(process.env.GORA_EXAMPLE_EVM_API_URL, "basic");
+const exampleName = process.argv[2] ?? "basic";
+console.log("Running example:", exampleName);
+
+runExample(process.env.GORA_EXAMPLE_EVM_API_URL, exampleName);
