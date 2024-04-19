@@ -57,7 +57,7 @@ contract GoraExampleOffChain {
                                bytes calldata value, bytes calldata userData,
                                uint256 srcErrors) public {
 
-    require(msg.sender == goraAddr, "sender is not the Gora main contract");
+    require(msg.sender == goraAddr, "sender is not Gora main contract");
     DEBUG("Gora response received", 0, bytes32ToBytes(reqId));
 
     // Save received variables for further inspection.
