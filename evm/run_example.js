@@ -187,10 +187,13 @@ async function runExample(apiUrl, name) {
     throw solRes.stderr.toString();
 
   const compiled = JSON.parse(solRes.stdout.toString());
+  const args = [ readContractAddr("main") ];
+  if (name == "off_chain")
+    args.push(Fs.readFileSync("off_chain_example.wasm"));
+
   const exampleContract = await deploy({
-    signer, compiled,
+    signer, compiled, args,
     name: `example_${name}`,
-    args: [ readContractAddr("main") ],
   });
   await enableContractLogs(exampleContract, "example");
 
@@ -252,4 +255,7 @@ async function runExample(apiUrl, name) {
   }
 }
 
-runExample(process.env.GORA_EXAMPLE_EVM_API_URL, "basic");
+const exampleName = process.argv[2] ?? "basic";
+console.log("Running example:", exampleName);
+
+runExample(process.env.GORA_EXAMPLE_EVM_API_URL, exampleName);
