@@ -190,6 +190,13 @@ app verbatim, as a byte string constant. For more off-chain executable
 specification options as well as other details on the off-chain computation
 feature, refer to Gora off-chain API documentation.
 
+### Experimental EVM examples
+
+The `evm` subdirectory contains examples that use experimental EVM support.
+These require a source checkout of the GNR repo since it has not yet been
+included in any public release. So at this time these examples are for internal
+use only.
+
 ## Troubleshooting
 
 Algorand [Dapp Flow](https://app.dappflow.org/explorer/home) web app can be used
