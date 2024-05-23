@@ -81,7 +81,7 @@ Run dev environment initialization via CLI tool.
 def init_dev_env(algod_port):
     server = f'http://localhost:{algod_port}'
     gora.run_cli("dev-init", [ "--dest-server", server ],
-                 { "GORACLE_CONFIG_FILE": "" }, True)
+                 { "GORA_CONFIG_FILE": "" }, True)
 
 print("This will set up Gora development environment.")
 print("Existing development environment settings may be overwritten.")
