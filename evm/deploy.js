@@ -3,7 +3,7 @@
 const Ethers = require("ethers");
 const Fs = require("fs");
 
-function loadContract(name, compiled) {
+function loadContract(name, compiled, solName) {
 
   if (!compiled) {
     const file = name + ".compiled";
@@ -11,9 +11,9 @@ function loadContract(name, compiled) {
     compiled = JSON.parse(Fs.readFileSync(file));
   }
 
-  const solName = name + ".sol";
+  solName ||= name + ".sol";
   const nameKey = Object.keys(compiled.contracts)
-                        .find(x => x.startsWith(`${solName}:`));
+                        .find(x => x.match(`(^|/)${solName}:`));
   if (!nameKey)
     throw `Smart contract "${solName}" not found in the JSON file`;
 
@@ -24,7 +24,7 @@ function loadContract(name, compiled) {
   return [ abi, bin ];
 }
 
-async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
+async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args }) {
 
   let provider
   if (signer)
@@ -57,9 +57,11 @@ async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
     if (varName.startsWith(prefix))
       constrArgs[Number(varName.substr(prefix.length))] = process.env[varName];
   }
-  console.log(`Deploying "${name}.sol" with ${constrArgs.length || 'no'} argument(s)`);
 
-  const [ abi, bin ] = loadContract(name, compiled);
+  solName ||= name + ".sol";
+  console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
+
+  const [ abi, bin ] = loadContract(name, compiled, solName);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
   await contract.waitForDeployment();
@@ -78,9 +80,9 @@ if (module.parent)
   Object.assign(exports, { deploy, loadContract });
 else {
   if (process.argv.length > 3) {
-    const [ , , apiUrl, name, addrFile ] = process.argv;
-    deploy({ apiUrl, name, addrFile });
+    const [ , , apiUrl, name, addrFile, solName ] = process.argv;
+    deploy({ apiUrl, name, addrFile, solName });
   }
   else
-    console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file]");
+    console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file] [solidity file name]");
 }
