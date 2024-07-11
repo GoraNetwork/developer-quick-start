@@ -63,8 +63,50 @@ for CHAIN in 'default' 'slave'; do
     $NODE_BIN deploy.js ${!GETH_URL_VAR} main main_$CHAIN.addr
 done
 
-echo "--------------------------------------------------------------------------------"
+# Configure and start local Gora node.
+GORA_DEV_CLI_TOOL="${GORA_DEV_CLI_TOOL:-../gora_cli}"
+export GORA_CONFIG_FILE='./.gora'
+export GORA_CONFIG="
+{
+  \"blockchain\": {
+    \"evm\": {
+      \"networks\": {
+        \"ethereumSepolia\": null,
+        \"baseSepolia\": null,
+        \"default\": {
+          \"type\": \"testnet\",
+          \"slave\": \"slave\",
+          \"disableVrfCounting\": true,
+          \"server\": \"$GETH_URL_default\",
+          \"mainContract\": \"$(cat ./main_default.addr)\",
+          \"privKey\": \"$(cat ./master_key.txt)\"
+        },
+        \"slave\": {
+          \"type\": \"testnet\",
+          \"disableVrfCounting\": true,
+          \"server\": \"$GETH_URL_slave\",
+          \"mainContract\": \"$(cat ./main_slave.addr)\",
+          \"privKey\": \"$(cat ./master_key.txt)\"
+        }
+      }
+    }
+  },
+  \"deployment\": {
+    \"id\": \"gora-nr-dev\",
+    \"logLevel\": 5,
+    \"stackTrace\": 1
+    $GORA_DEV_EVM_CONFIG_DEPL_EXTRA
+  }
+}
+"
+echo "Gora config: $GORA_CONFIG" #DB
+GORA_LOG=./gora.log
+LOGS+=" $GORA_LOG"
+$GORA_DEV_CLI_TOOL docker-start >$GORA_LOG 2>&1 &
+PIDS+=" $!"
+
+echo "-----------------------------------------------------------------------------"
 echo "Tailing log files, Ctrl-C to stop and terminate all child processes"
-echo "--------------------------------------------------------------------------------"
+echo "-----------------------------------------------------------------------------"
 tail -n +1  -F $LOGS
 killall $CHILD_PIDS
