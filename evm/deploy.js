@@ -2,6 +2,7 @@
 
 const Ethers = require("ethers");
 const Fs = require("fs");
+const TimersPromises = require("timers/promises");
 
 function loadContract(name, compiled, solName) {
 
@@ -36,7 +37,7 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   console.log("At block:", await provider.getBlockNumber());
 
   if (!signer) {
-    const keyFile = "deploy_key.txt";
+    const keyFile = process.env.GORA_DEV_EVM_DEPLOY_KEY || "deploy_key.txt";
     if (Fs.existsSync(keyFile)) {
       console.log(`Reading signer's private key from "${keyFile}"`);
       const privKeyHex = Fs.readFileSync(keyFile, "utf8");
@@ -59,9 +60,9 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   }
 
   solName ||= name + ".sol";
-  console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
-
   const [ abi, bin ] = loadContract(name, compiled, solName);
+
+  console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
   await contract.waitForDeployment();
@@ -72,6 +73,13 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   addrFile ||= name + ".addr";
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
+
+  if (name.match(/(^|[^a-z])token([^a-z]|$)/)) {
+    const mintAmount = Number(process.env.DEPLOY_TOKEN_MINT_AMOUNT) || 10_000_000
+    console.log(`Token contract detected, minting "${mintAmount}" token(s)`);
+    await TimersPromises.setTimeout(1000);
+    await (await contract.mint(mintAmount)).wait();
+  }
 
   return contract;
 }
