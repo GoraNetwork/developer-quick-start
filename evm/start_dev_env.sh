@@ -37,7 +37,7 @@ done
 
 AXELAR_LOG=axelar.log
 echo "Starting local Axelar relayer, see $AXELAR_LOG for saved output"
-$NODE_BIN ./mock_axelar.js >$AXELAR_LOG 2>&1 &
+$NODE_BIN ./axelar_relayer.js >$AXELAR_LOG 2>&1 &
 CHILD_PIDS+=" $!"
 LOGS+=" ./$AXELAR_LOG"
 
