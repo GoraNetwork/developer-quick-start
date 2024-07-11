@@ -4,73 +4,58 @@ const TimersPromises = require("timers/promises");
 const Fs = require("fs");
 const AxelarLocalDev = require("@axelar-network/axelar-local-dev");
 
-// How often to check for messages to relay.
-const defaultRelayInterval = 500;
+// Network names to use for files with addresses of deployed contracts.
+const netNames = [ "default", "slave" ];
 
-const defaultAddrs = [ "0x69aeb7dc4f2a86873dae8d753de89326cf90a77a",
-                       "0x783e7717fd4592814614afc47ee92568a495ce0b" ];
+// Default command-line arguments
+const defaultArgs = [
+  500, // relay interval in ms.
+  "http://127.0.0.1:8546/", // master RPC endpoint
+  "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // master owner
+  "http://127.0.0.1:8547/", // slave RPC endpoint
+  "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // slave address
+];
 
-async function setupAndRunInternal(args) {
 
-  let [ port, relayInterval, ...addrs ] = args;
-  port ||= 8500;
-  relayInterval ||= defaultRelayInterval;
-  if (!addrs.length)
-    addrs = defaultAddrs;
+async function main() {
 
-  console.log("Setting up Axelar multi-chain dev environment");
-  const chains = [];
-  AxelarLocalDev.createAndExport({
-    port, relayInterval,
-    chains: [ ...addrs.keys() ].map(x => `chain_${x}`),
-    callback: x => chains.push(x),
-    relayers: { evm: new AxelarLocalDev.EvmRelayer() },
-  });
+  // Apply CLI argument defaults.
+  const args = [];
+  for (const [ i, defaultVal ] of defaultArgs.entries())
+    args[i] = process.argv[2 + i] ?? defaultVal;
 
-  // Wait until all chains are created.
-  while (chains.length != addrs.length)
-    await TimersPromises.setTimeout(100);
-
-  // Fund master addresses. "accountsToFund" argument to createAndExport() throws.
-  for (let i = 0; i < chains.length; i++) {
-    console.log(`Funding address "${addrs[i]}"`);
-    await (await chains[i].userWallets[0].sendTransaction({
-      to: chains[i].userWallets[1].address, value: 1000,
-    })).wait();
-  }
-
-}
-
-async function setupExternal(args) {
-
-  if (!args.length) {
-    args = [
-      "http://127.0.0.1:8546/",
-      "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d",
-      "http://127.0.0.1:8547/",
-      "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d",
-    ];
-  }
-
+  const [ relayInterval, ...netConf ] = args;
   const networks = [];
-  for (let i = 0; i < args.length / 2; i++) {
+
+  // Deploy Axelar contracts.
+  for (let i = 0; i < netConf.length / 2; i++) {
+    console.log(`Setting up smart contracts on network #${i}`);
     networks.push(
       await AxelarLocalDev.setupNetwork(
-        args[i*2],
-        { name: "chain_" + i, ownerKey: args[i*2+1], },
+        netConf[i*2], // RPC URL
+        {
+          name: "chain_" + i, // numbered names required by our contracts
+          ownerKey: netConf[i*2+1],
+        },
       )
     );
   }
 
-  const names = [ "default", "slave" ];
-  for (let i = 0; i < names.length; i++) {
-    Fs.writeFileSync(`axelar_gw_${names[i]}.addr`, networks[i].gateway.address);
-    Fs.writeFileSync(`axelar_gas_${names[i]}.addr`, networks[i].gasService.address);
+  // Save contract addresses for reference by other tools.
+  for (let i = 0; i < netNames.length; i++) {
+    const save = (x,y) => {
+      const file = `./axelar_${x}_${netNames[i]}.addr`;
+      console.log(`Writing ${netNames[i]} ${y} contract address to "${file}"`);
+      Fs.writeFileSync(file, networks[i][y].address);
+    }
+    save("gw", "gateway");
+    save("gas", "gasService");
   }
 
-  console.log("Relaying, interval:", defaultRelayInterval);
+  // Start the perpetual relay loop.
+  console.log("Relaying, interval (ms):", relayInterval);
   while (true) {
-    await TimersPromises.setTimeout(defaultRelayInterval);
+    await TimersPromises.setTimeout(relayInterval);
     try {
       await AxelarLocalDev.relay();
     }
@@ -80,12 +65,5 @@ async function setupExternal(args) {
   }
 }
 
-async function main() {
-
-  if (process.argv[2] == "-i")
-    await setupAndRunInternal(process.argv.slice(3));
-  else
-    await setupExternal(process.argv.slice(2));
-}
-
+console.log("Starting Gora local Axelar relayer");
 main();
