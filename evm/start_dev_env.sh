@@ -66,5 +66,5 @@ done
 echo "--------------------------------------------------------------------------------"
 echo "Tailing log files, Ctrl-C to stop and terminate all child processes"
 echo "--------------------------------------------------------------------------------"
-tail -F $LOGS
+tail -n +1  -F $LOGS
 killall $CHILD_PIDS
