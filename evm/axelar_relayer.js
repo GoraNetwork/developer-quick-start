@@ -16,7 +16,6 @@ const defaultArgs = [
   "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // slave address
 ];
 
-
 async function main() {
 
   // Apply CLI argument defaults.
