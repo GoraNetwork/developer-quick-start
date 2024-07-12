@@ -4,6 +4,7 @@ NODE_BIN=/usr/bin/node
 GETH_BIN=./geth
 
 MASTER_ADDR=$(cat ./master_addr.txt)
+NODE_STAKE=10000
 
 GETH_HOST=http://localhost
 GETH_PORT_default=8546
@@ -99,7 +100,10 @@ export GORA_CONFIG="
   }
 }
 "
-echo "Gora config: $GORA_CONFIG" #DB
+echo "Setting devlopment node's stake"
+$GORA_DEV_CLI_TOOL evm-set --network default --setup-master-slave \
+                   --stake $NODE_STAKE
+
 GORA_LOG=./gora.log
 LOGS+=" $GORA_LOG"
 $GORA_DEV_CLI_TOOL docker-start >$GORA_LOG 2>&1 &
