@@ -1,21 +1,21 @@
 "use strict";
 
-const fatalErrHandler = err => {
-  console.log(err ?? err.stack);
-  process.exit(1);
-};
-process.on("unhandledRejection", fatalErrHandler);
-process.on("uncaughtException", fatalErrHandler);
+for (const event of [ "unhandledRejection", "uncaughtException" ]) {
+  process.on(event, err => {
+    console.log(err.stack ?? err);
+    process.exit(1);
+  });
+}
 
-const Ethers = require("ethers");
 const Fs = require("fs");
 const ChildProcess = require("child_process");
 const TimersPromises = require("timers/promises");
-const Events = require("events");
+const Ethers = require("ethers");
 const { deploy, loadContract } = require("./deploy.js");
 
 const testStake = 10_000;
 const devGoraNodeDockerName = "gora-nr-dev";
+const deflEvmApiUrl = "http://localhost:8546";
 
 // Solidity compilation command and options.
 const solcCmd = "./solc";
@@ -40,27 +40,19 @@ async function enableContractLogs(contract, name) {
   });
 }
 
-// Load/deploy Gora main contract and return its instance.
+// Load Gora main contract, return its instance.
 async function setupGoraContract(signer) {
 
-  let res;
-  const addr = readContractAddr("main");
+  const addr = readContractAddr("main_default");
+  const [ abi ] = loadContract("main");
+  const res = new Ethers.Contract(addr, abi, signer);
 
-  if (addr) {
-    const [ abi ] = loadContract("main");
-    res = new Ethers.Contract(addr, abi, signer);
-
-    // Check that main contract is really at this address. That will not be
-    // the case if Hardhat has been restarted.
-    console.log(`Checking for Gora contract at "${addr}"`);
-    let goraName;
-    try { goraName = await res.goraName() } catch (e) {};
-    if (goraName != "main")
-      res = undefined;
-  }
-
-  if (!res)
-    res = await deploy({ signer, name: "main" });
+  // Check that main contract is really at this address. It will not if
+  // blockchain was restarted without contract redeployment and .addr file update.
+  let goraName;
+  try { goraName = await res.goraName() } catch (e) {};
+  if (goraName != "main")
+    throw "Saved gora main contract address is not current";
 
   await enableContractLogs(res, "main");
   return res;
@@ -112,28 +104,6 @@ async function startGoraNodeMaybe(reqRound, evmCfg) {
   ChildProcess.execFileSync(cmd, args, opts);
 }
 
-// Start local EVM node for execution of this example.
-async function startEvmNode() {
-
-  const checkCmd = "npx --no --no-color hardhat check";
-  const checkOutput = ChildProcess.execSync(checkCmd, { encoding: "utf-8" });
-  if (checkOutput) {
-    throw "Hardhat is required, make sure it is installed and operational."
-          + " npx output: " + checkOutput;
-  }
-
-  const streams = [ "out", "err" ].map(x => Fs.createWriteStream(`evm_${x}.log`));
-  await Promise.all(streams.map(x => Events.once(x, "open")));
-
-  console.log('Starting temporary Hardhat node, see "evm_*.log" files for its output');
-  const evmNodeProcess = ChildProcess.spawn("npx", [ "hardhat", "node" ], {
-    stdio: [ "ignore", ...streams ],
-  });
-
-  await TimersPromises.setTimeout(1000);
-  return [ evmNodeProcess, "http://localhost:8545/" ];
-}
-
 // Return private key to use for signing txn's.
 function getEvmPrivKey() {
 
@@ -168,12 +138,12 @@ async function connectToEvmNode(url) {
   return [ signer, provider ];
 }
 
+
 // Run an EVM example by name.
 async function runExample(apiUrl, name) {
 
-  let evmNodeProcess;
-  if (!apiUrl)
-    [ evmNodeProcess, apiUrl ] = await startEvmNode();
+  if (!isDevGoraNodeRunning())
+    throw "No running development Gora node detected, cannot continue";
 
   let [ signer, provider ] = await connectToEvmNode(apiUrl);
   const goraContract = await setupGoraContract(signer);
@@ -187,7 +157,7 @@ async function runExample(apiUrl, name) {
     throw solRes.stderr.toString();
 
   const compiled = JSON.parse(solRes.stdout.toString());
-  const args = [ readContractAddr("main") ];
+  const args = [ readContractAddr("main_default") ];
   if (name == "off_chain")
     args.push(Fs.readFileSync("off_chain_example.wasm"));
 
@@ -201,44 +171,17 @@ async function runExample(apiUrl, name) {
   goraContract.on("CreateRequest", (_, reqId) => createdReqId = reqId);
 
   console.log("Making a Gora request");
-  const txnResp = await exampleContract.makeGoraRequest();
+  const txnResp = await exampleContract.makeGoraRequest(
+    { gasLimit: 1000000, value: 1000000 }
+  );
   const txnReceipt = await txnResp.wait();
   console.log(`Gora request made in round "${txnReceipt.blockNumber}"`);
 
-  console.log("Setting signer's stake to:", testStake);
-  const signerAddr = await signer.getAddress();
-  await (await goraContract.testSetStakes([ signerAddr ], [ testStake ])).wait();
-
-  const evmCfg = {
-    networks: {
-      hardhat: {
-        privKey: getEvmPrivKey(),
-        mainContract: goraContract.target,
-        server: apiUrl
-      }
-    }
-  };
-
-  // Shut down EVM API the connection. Otherwise ECONNRESET (socket hang up)
-  // errors may occur with Hardhat after Gora node has executed.
-  exampleContract.removeAllListeners(); // otherwise destroy() will break
-  goraContract.removeAllListeners();
-  await TimersPromises.setTimeout(500); // ensure the above worked
-  provider.destroy();
-
   if (!createdReqId)
     throw "Failed to create Gora request or retrieve its ID";
-  console.log("Created Gora request ID:", createdReqId);
+  console.log(`Created Gora request ID: ${createdReqId}`);
 
-  startGoraNodeMaybe(txnReceipt.blockNumber, evmCfg);
   console.log("Checking received result");
-
-  // Reconnect.
-  [ signer, provider ] = await connectToEvmNode(apiUrl);
-  Object.defineProperties(exampleContract, { // silly read-only properties
-    runner: { value: signer, writable: true }
-  });
-
   const lastReqId = await exampleContract.lastReqId();
   if (lastReqId == createdReqId)
     console.log("Success, response received by destination method");
@@ -248,14 +191,10 @@ async function runExample(apiUrl, name) {
   const lastValueRaw = await exampleContract.lastValue();
   const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
   console.log(`Response value: "${lastValueStr}"`);
-
-  if (evmNodeProcess) {
-    console.log("Stopping temporary Hardhat node");
-    evmNodeProcess.kill("SIGKILL"); // SIGTERM is not enough due to subprocesses
-  }
 }
 
 const exampleName = process.argv[2] ?? "basic";
-console.log("Running example:", exampleName);
+console.log(`Running example: ${exampleName}`);
 
-runExample(process.env.GORA_EXAMPLE_EVM_API_URL, exampleName);
+const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || deflEvmApiUrl;
+runExample(apiUrl, exampleName);
