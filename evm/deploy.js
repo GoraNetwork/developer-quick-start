@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 
 const Ethers = require("ethers");
@@ -25,6 +26,19 @@ function loadContract(name, compiled, solName) {
   return [ abi, bin ];
 }
 
+async function mintMaybe(name, contract) {
+
+  if (!name.match(/(^|[^a-z])token([^a-z]|$)/))
+    return;
+  const amount = Number(process.env.GORA_DEV_DEPLOY_TOKEN_MINT_AMOUNT)
+                 || 10_000_000;
+  if (!amount)
+    return;
+  console.log(`Minting "${amount}" token(s)`);
+  await TimersPromises.setTimeout(1000);
+  await (await contract.mint(amount)).wait();
+}
+
 async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args }) {
 
   let provider
@@ -41,7 +55,7 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
     if (Fs.existsSync(keyFile)) {
       console.log(`Reading signer's private key from "${keyFile}"`);
       const privKeyHex = Fs.readFileSync(keyFile, "utf8");
-      signer = new Ethers.Wallet(privKeyHex, provider);
+      signer = new Ethers.NonceManager(new Ethers.Wallet(privKeyHex, provider));
     }
     else {
       console.log("No key file, getting a signer automatically");
@@ -74,23 +88,19 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
 
-  if (name.match(/(^|[^a-z])token([^a-z]|$)/)) {
-    const mintAmount = Number(process.env.DEPLOY_TOKEN_MINT_AMOUNT) || 10_000_000
-    console.log(`Token contract detected, minting "${mintAmount}" token(s)`);
-    await TimersPromises.setTimeout(1000);
-    await (await contract.mint(mintAmount)).wait();
-  }
-
+  mintMaybe(name, contract);
   return contract;
 }
 
-if (module.parent)
+if (module.parent) {
   Object.assign(exports, { deploy, loadContract });
-else {
-  if (process.argv.length > 3) {
-    const [ , , apiUrl, name, addrFile, solName ] = process.argv;
-    deploy({ apiUrl, name, addrFile, solName });
-  }
-  else
-    console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file] [solidity file name]");
+  return;
 }
+
+if (process.argv.length < 4) {
+  console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file] [solidity file name]");
+  return;
+}
+
+const [ , , apiUrl, name, addrFile, solName ] = process.argv;
+deploy({ apiUrl, name, addrFile, solName });
