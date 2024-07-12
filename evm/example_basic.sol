@@ -38,7 +38,7 @@ contract GoraExample {
   }
 
   // Make a request to Gora using the above configuration.
-  function makeGoraRequest() public {
+  function makeGoraRequest() payable public {
 
     DEBUG("Using Gora address", 0, abi.encodePacked(goraAddr));
 
