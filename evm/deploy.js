@@ -30,11 +30,13 @@ async function mintMaybe(name, contract) {
 
   if (!name.match(/(^|[^a-z])token([^a-z]|$)/))
     return;
+
   const amount = Number(process.env.GORA_DEV_DEPLOY_TOKEN_MINT_AMOUNT)
                  || 10_000_000;
   if (!amount)
     return;
-  console.log(`Minting "${amount}" token(s)`);
+
+  console.log(`Token contract detected, minting "${amount}" token(s)`);
   await TimersPromises.setTimeout(1000);
   await (await contract.mint(amount)).wait();
 }
@@ -75,6 +77,7 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
 
   solName ||= name + ".sol";
   const [ abi, bin ] = loadContract(name, compiled, solName);
+  await TimersPromises.setTimeout(1000);
 
   console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
