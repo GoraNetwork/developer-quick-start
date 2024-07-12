@@ -13,7 +13,6 @@ const TimersPromises = require("timers/promises");
 const Ethers = require("ethers");
 const { deploy, loadContract } = require("./deploy.js");
 
-const testStake = 10_000;
 const devGoraNodeDockerName = "gora-nr-dev";
 const deflEvmApiUrl = "http://localhost:8546";
 
@@ -64,60 +63,6 @@ function isDevGoraNodeRunning() {
   const cmd = `docker ps --filter name=${devGoraNodeDockerName} --format Aha`;
   const output = ChildProcess.execSync(cmd)
   return Boolean(output.length);
-}
-
-// Start one-time Gora node if necessary.
-async function startGoraNodeMaybe(reqRound, evmCfg) {
-
-  if (isDevGoraNodeRunning()) {
-    console.log("Detected development Gora node running in the background");
-    return;
-  }
-  console.log("Background development Gora node not detected, starting a"
-              + " temporary one")
-
-  const customCfg = JSON.parse(process.env.GORA_CONFIG || "{}");
-  customCfg.blockchain ||= {};
-  customCfg.blockchain.evm = {
-    ...(customCfg.blockchain.evm || {}),
-    ...evmCfg
-  };
-
-  const args = [ "docker-start" ];
-  let cmd = process.env.GORA_DEV_CLI_TOOL ?? "../gora_cli";
-  if (cmd.endsWith(".js")) {
-    args.unshift(cmd);
-    cmd = "node";
-  }
-  console.log("Running:", cmd, ...args);
-
-  const opts = {
-    encoding: "utf-8",
-    stdio: "inherit",
-    env: {
-      ...process.env,
-      GORA_CONFIG: JSON.stringify(customCfg),
-      GORA_CONFIG_FILE: process.env.GORA_DEV_CONFIG_FILE ?? "../.gora",
-      GORA_DEV_EVM_ONLY_NETWORK_ROUND: `hardhat:${reqRound}`,
-    }
-  };
-  ChildProcess.execFileSync(cmd, args, opts);
-}
-
-// Return private key to use for signing txn's.
-function getEvmPrivKey() {
-
-  let res = process.env.GORA_DEV_HARDHAT_PRIV_KEY;
-  if (res)
-    return res;
-
-  let hardhatCfg;
-  try { hardhatCfg = require("./hardhat.config.js") } catch(e) {};
-  res = hardhatCfg?.networks?.hardhat?.accounts?.[0]?.privateKey;
-  if (!res)
-    throw "Test EVM account private key not configured";
-
-  return res;
 }
 
 async function connectToEvmNode(url) {
@@ -171,11 +116,11 @@ async function runExample(apiUrl, name) {
   goraContract.on("CreateRequest", (_, reqId) => createdReqId = reqId);
 
   console.log("Making a Gora request");
-  const txnResp = await exampleContract.makeGoraRequest(
+  const txnReceipt = await (await exampleContract.makeGoraRequest(
     { gasLimit: 1000000, value: 1000000 }
-  );
-  const txnReceipt = await txnResp.wait();
+  )).wait();
   console.log(`Gora request made in round "${txnReceipt.blockNumber}"`);
+  await TimersPromises.setTimeout(1500);
 
   if (!createdReqId)
     throw "Failed to create Gora request or retrieve its ID";
@@ -191,6 +136,9 @@ async function runExample(apiUrl, name) {
   const lastValueRaw = await exampleContract.lastValue();
   const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
   console.log(`Response value: "${lastValueStr}"`);
+
+  goraContract.removeAllListeners();
+  exampleContract.removeAllListeners();
 }
 
 const exampleName = process.argv[2] ?? "basic";
