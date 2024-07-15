@@ -1,9 +1,11 @@
+#!/usr/bin/env node
 "use strict";
 
 const Ethers = require("ethers");
 const Fs = require("fs");
+const TimersPromises = require("timers/promises");
 
-function loadContract(name, compiled) {
+function loadContract(name, compiled, solName) {
 
   if (!compiled) {
     const file = name + ".compiled";
@@ -11,9 +13,9 @@ function loadContract(name, compiled) {
     compiled = JSON.parse(Fs.readFileSync(file));
   }
 
-  const solName = name + ".sol";
+  solName ||= name + ".sol";
   const nameKey = Object.keys(compiled.contracts)
-                        .find(x => x.startsWith(`${solName}:`));
+                        .find(x => x.match(`(^|/)${solName}:`));
   if (!nameKey)
     throw `Smart contract "${solName}" not found in the JSON file`;
 
@@ -24,7 +26,22 @@ function loadContract(name, compiled) {
   return [ abi, bin ];
 }
 
-async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
+async function mintMaybe(name, contract) {
+
+  if (!name.match(/(^|[^a-z])token([^a-z]|$)/))
+    return;
+
+  const amount = Number(process.env.GORA_DEV_DEPLOY_TOKEN_MINT_AMOUNT)
+                 || 10_000_000;
+  if (!amount)
+    return;
+
+  console.log(`Token contract detected, minting "${amount}" token(s)`);
+  await TimersPromises.setTimeout(1000);
+  await (await contract.mint(amount)).wait();
+}
+
+async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args }) {
 
   let provider
   if (signer)
@@ -36,11 +53,11 @@ async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
   console.log("At block:", await provider.getBlockNumber());
 
   if (!signer) {
-    const keyFile = "deploy_key.txt";
+    const keyFile = process.env.GORA_DEV_EVM_DEPLOY_KEY || "deploy_key.txt";
     if (Fs.existsSync(keyFile)) {
       console.log(`Reading signer's private key from "${keyFile}"`);
       const privKeyHex = Fs.readFileSync(keyFile, "utf8");
-      signer = new Ethers.Wallet(privKeyHex, provider);
+      signer = new Ethers.NonceManager(new Ethers.Wallet(privKeyHex, provider));
     }
     else {
       console.log("No key file, getting a signer automatically");
@@ -57,9 +74,12 @@ async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
     if (varName.startsWith(prefix))
       constrArgs[Number(varName.substr(prefix.length))] = process.env[varName];
   }
-  console.log(`Deploying "${name}.sol" with ${constrArgs.length || 'no'} argument(s)`);
 
-  const [ abi, bin ] = loadContract(name, compiled);
+  solName ||= name + ".sol";
+  const [ abi, bin ] = loadContract(name, compiled, solName);
+  await TimersPromises.setTimeout(1000);
+
+  console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
   await contract.waitForDeployment();
@@ -71,16 +91,19 @@ async function deploy({ apiUrl, name, addrFile, compiled, signer, args }) {
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
 
+  mintMaybe(name, contract);
   return contract;
 }
 
-if (module.parent)
+if (module.parent) {
   Object.assign(exports, { deploy, loadContract });
-else {
-  if (process.argv.length > 3) {
-    const [ , , apiUrl, name, addrFile ] = process.argv;
-    deploy({ apiUrl, name, addrFile });
-  }
-  else
-    console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file]");
+  return;
 }
+
+if (process.argv.length < 4) {
+  console.log("Usage: node deploy.js <node URL> <contract JSON file> [address output file] [solidity file name]");
+  return;
+}
+
+const [ , , apiUrl, name, addrFile, solName ] = process.argv;
+deploy({ apiUrl, name, addrFile, solName });
