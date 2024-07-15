@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 
 for (const event of [ "unhandledRejection", "uncaughtException" ]) {
@@ -8,6 +9,7 @@ for (const event of [ "unhandledRejection", "uncaughtException" ]) {
 }
 
 const Fs = require("fs");
+const Path = require("path");
 const ChildProcess = require("child_process");
 const TimersPromises = require("timers/promises");
 const Ethers = require("ethers");
@@ -141,7 +143,14 @@ async function runExample(apiUrl, name) {
   exampleContract.removeAllListeners();
 }
 
-const exampleName = process.argv[2] ?? "basic";
+if (process.argv.length < 3) {
+  const scriptName = Path.basename(process.argv[1]);
+  console.log(`Usage: ${scriptName} <example name>`);
+  console.log(`Example: ${scriptName} basic`);
+  return;
+}
+
+const exampleName = process.argv[2];
 console.log(`Running example: ${exampleName}`);
 
 const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || deflEvmApiUrl;
