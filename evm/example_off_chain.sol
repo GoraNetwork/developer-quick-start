@@ -25,7 +25,7 @@ contract GoraExampleOffChain {
   }
 
   // Make a request to Gora using the above configuration.
-  function makeGoraRequest() public {
+  function makeGoraRequest() payable public {
 
     bytes[] memory args = new bytes[](1);
     args[0]= "sm14hp"; // UK postcode of the area queried

@@ -119,7 +119,7 @@ async function runExample(apiUrl, name) {
 
   console.log("Making a Gora request");
   const txnReceipt = await (await exampleContract.makeGoraRequest(
-    { gasLimit: 1000000, value: 1000000 }
+    { gasLimit: 10000000, value: 10000000 }
   )).wait();
   console.log(`Gora request made in round "${txnReceipt.blockNumber}"`);
   await TimersPromises.setTimeout(1500);
