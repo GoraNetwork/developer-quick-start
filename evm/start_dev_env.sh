@@ -75,16 +75,12 @@ export GORA_CONFIG="
         \"default\": {
           \"type\": \"testnet\",
           \"slave\": \"slave\",
-          \"disableVrfCounting\": true,
-          \"voteGas\": 1000000,
           \"server\": \"$GETH_URL_default\",
           \"mainContract\": \"$(cat ./main_default.addr)\",
           \"privKey\": \"$(cat ./master_key.txt)\"
         },
         \"slave\": {
           \"type\": \"testnet\",
-          \"disableVrfCounting\": true,
-          \"voteGas\": 1000000,
           \"server\": \"$GETH_URL_slave\",
           \"mainContract\": \"$(cat ./main_slave.addr)\",
           \"privKey\": \"$(cat ./master_key.txt)\"
