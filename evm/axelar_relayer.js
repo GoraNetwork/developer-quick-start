@@ -9,7 +9,7 @@ const netNames = [ "default", "slave" ];
 
 // Default command-line arguments
 const defaultArgs = [
-  500, // relay interval in ms.
+  250, // relay interval in ms.
   "http://127.0.0.1:8546/", // master RPC endpoint
   "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // master owner
   "http://127.0.0.1:8547/", // slave RPC endpoint
