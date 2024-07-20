@@ -103,10 +103,10 @@ $GORA_DEV_CLI_TOOL evm-set --network default --setup-master-slave \
 GORA_LOG=./gora.log
 LOGS+=" $GORA_LOG"
 $GORA_DEV_CLI_TOOL docker-start >$GORA_LOG 2>&1 &
-PIDS+=" $!"
+CHILD_PIDS+=" $!"
 
 echo "-----------------------------------------------------------------------------"
 echo "Tailing log files, Ctrl-C to stop and terminate all child processes"
 echo "-----------------------------------------------------------------------------"
-tail -n +1  -F $LOGS
-killall $CHILD_PIDS
+tail -n +1 -F $LOGS
+kill $CHILD_PIDS
