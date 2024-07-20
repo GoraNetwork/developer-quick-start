@@ -47,20 +47,17 @@ sleep 5
 echo "Deploying Gora smart contracts"
 export GORA_DEV_EVM_DEPLOY_KEY=./master_key.txt
 
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$MASTER_ADDR \
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1="GORA token" \
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=GORA \
-  $NODE_BIN ./deploy.js $GETH_URL_default \
-          token token_default.addr GoraToken.sol
+GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0="$MASTER_ADDR" \
+GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1='GORA token' \
+GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
+  $NODE_BIN ./deploy.js "$GETH_URL_default" token token_default.addr GoraToken.sol
 echo 0x0000000000000000000000000000000000000000 > token_slave.addr
 
 for CHAIN in 'default' 'slave'; do
   GETH_URL_VAR="GETH_URL_$CHAIN"
-  $NODE_BIN ./deploy.js ${!GETH_URL_VAR} vrf_lib vrf_lib_$CHAIN.addr
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./vrf_lib_$CHAIN.addr) \
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./token_$CHAIN.addr) \
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gw_$CHAIN.addr) \
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3=$(cat ./axelar_gas_$CHAIN.addr) \
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
     $NODE_BIN deploy.js ${!GETH_URL_VAR} main main_$CHAIN.addr
 done
 
@@ -96,9 +93,12 @@ export GORA_CONFIG="
   }
 }
 "
+echo "Setting up master/slave network info"
+$GORA_DEV_CLI_TOOL evm-set --network default --setup-master-slave --update-slave
+sleep 5
+
 echo "Setting devlopment node's stake"
-$GORA_DEV_CLI_TOOL evm-set --network default --setup-master-slave \
-                   --stake $NODE_STAKE
+$GORA_DEV_CLI_TOOL evm-set --network default --stake $NODE_STAKE
 
 GORA_LOG=./gora.log
 LOGS+=" $GORA_LOG"
