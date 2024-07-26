@@ -35,7 +35,7 @@ contract GoraExampleOffChain {
 
     bytes memory srcArg = abi.encode(apiVer, specType, wasmBody, args);
     bytes memory reqSig = abi.encodeWithSignature(
-      "request(uint8,bytes,bytes,address,string,bytes,uint)", 3,
+      "request(uint8,bytes,bytes,address,string,bytes,uint256)", 3,
       "gora://offchain/inline", srcArg, address(this), "receiveGoraResponse",
       "", 0
     );
