@@ -5,7 +5,8 @@ pragma experimental ABIEncoderV2;
 contract GoraExample {
 
   // Gora request method signature.
-  string constant goraRequestSigSrc = "request(uint8,bytes,bytes,address,string,bytes)";
+  string constant goraRequestSigSrc
+    = "request(uint8,bytes,bytes,address,string,bytes,uint256)";
 
   // URL from which to fetch oracle data.
   string constant exampleUrl = "http://echo.jsontest.com/testfield/testvalue";

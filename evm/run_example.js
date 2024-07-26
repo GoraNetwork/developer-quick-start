@@ -45,10 +45,11 @@ async function enableContractLogs(contract, name) {
 async function setupGoraContract(signer) {
 
   const addr = readContractAddr("main_default");
+  console.log(`Using address "${addr}" for Gora main contract`);
   const [ abi ] = loadContract("main");
   const res = new Ethers.Contract(addr, abi, signer);
 
-  // Check that main contract is really at this address. It will not if
+  // Check that main contract is really at this address. It will not be if
   // blockchain was restarted without contract redeployment and .addr file update.
   let goraName;
   try { goraName = await res.goraName() } catch (e) {};
@@ -85,7 +86,6 @@ async function connectToEvmNode(url) {
   return [ signer, provider ];
 }
 
-
 // Run an EVM example by name.
 async function runExample(apiUrl, name) {
 
@@ -118,9 +118,7 @@ async function runExample(apiUrl, name) {
   goraContract.on("CreateRequest", (_, reqId) => createdReqId = reqId);
 
   console.log("Making a Gora request");
-  const txnReceipt = await (await exampleContract.makeGoraRequest(
-    { gasLimit: 10000000, value: 10000000 }
-  )).wait();
+  const txnReceipt = await (await exampleContract.makeGoraRequest()).wait();
   console.log(`Gora request made in round "${txnReceipt.blockNumber}"`);
   await TimersPromises.setTimeout(1500);
 
