@@ -15,9 +15,6 @@ const TimersPromises = require("timers/promises");
 const Ethers = require("ethers");
 const { deploy, loadContract } = require("./deploy.js");
 
-const devGoraNodeDockerName = "gora-nr-dev";
-const deflEvmApiUrl = "http://localhost:8546";
-
 // Solidity compilation command and options.
 const solcCmd = "./solc";
 const solcOpts = [ "--no-color", "--combined-json", "abi,bin" ];
@@ -60,14 +57,6 @@ async function setupGoraContract(signer) {
   return res;
 }
 
-// Return true if dev Gora node is running, false otherwise.
-function isDevGoraNodeRunning() {
-
-  const cmd = `docker ps --filter name=${devGoraNodeDockerName} --format Aha`;
-  const output = ChildProcess.execSync(cmd)
-  return Boolean(output.length);
-}
-
 async function connectToEvmNode(url) {
 
   console.log(`Using EVM API at: ${url}`);
@@ -88,9 +77,6 @@ async function connectToEvmNode(url) {
 
 // Run an EVM example by name.
 async function runExample(apiUrl, name) {
-
-  if (!isDevGoraNodeRunning())
-    throw "No running development Gora node detected, cannot continue";
 
   let [ signer, provider ] = await connectToEvmNode(apiUrl);
   const goraContract = await setupGoraContract(signer);
@@ -151,5 +137,5 @@ if (process.argv.length < 3) {
 const exampleName = process.argv[2];
 console.log(`Running example: ${exampleName}`);
 
-const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || deflEvmApiUrl;
+const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || "http://localhost:8546";
 runExample(apiUrl, exampleName);
