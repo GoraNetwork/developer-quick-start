@@ -7,23 +7,15 @@ const AxelarLocalDev = require("@axelar-network/axelar-local-dev");
 // Network names to use for files with addresses of deployed contracts.
 const netNames = [ "default", "slave" ];
 
-// Default command-line arguments
-const defaultArgs = [
-  250, // relay interval in ms.
-  "http://127.0.0.1:8546/", // master RPC endpoint
-  "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // master owner
-  "http://127.0.0.1:8547/", // slave RPC endpoint
-  "0xcf154564c745ba11a8f4de1c0ca2e70739eb7683680c6f97d8baf605f9e5a57d", // slave address
-];
-
 async function main() {
 
-  // Apply CLI argument defaults.
-  const args = [];
-  for (const [ i, defaultVal ] of defaultArgs.entries())
-    args[i] = process.argv[2 + i] ?? defaultVal;
+  if (process.argv.length < 7) {
+    console.log("Usage: axelar_relayer.js <interval ms> <master URL> <master key>"
+                + " <slave URL> <slave key>");
+    return;
+  }
 
-  const [ relayInterval, ...netConf ] = args;
+  const [ relayInterval, ...netConf ] = process.argv.slice(2);
   const networks = [];
 
   // Deploy Axelar contracts.
