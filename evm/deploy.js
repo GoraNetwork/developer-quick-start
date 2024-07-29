@@ -32,7 +32,7 @@ async function mintMaybe(name, contract) {
     return;
 
   const amount = Number(process.env.GORA_DEV_DEPLOY_TOKEN_MINT_AMOUNT)
-                 || 1000000000000000000000000;
+                 || 10_000_000_000;
   if (!amount)
     return;
 
