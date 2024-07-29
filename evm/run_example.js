@@ -26,6 +26,13 @@ function readContractAddr(name) {
   return Fs.existsSync(file) ? Fs.readFileSync(file, "ascii") : null;
 }
 
+// Return Gora main contract address.
+function getMainContractAddr() {
+
+  return process.env.GORA_EXAMPLE_EVM_MAIN_ADDR
+         || readContractAddr("main_default");
+}
+
 // Enable logging of a contracts log messages via console.
 async function enableContractLogs(contract, name) {
 
@@ -41,7 +48,7 @@ async function enableContractLogs(contract, name) {
 // Load Gora main contract, return its instance.
 async function setupGoraContract(signer) {
 
-  const addr = readContractAddr("main_default");
+  const addr = getMainContractAddr();
   console.log(`Using address "${addr}" for Gora main contract`);
   const [ abi ] = loadContract("main");
   const res = new Ethers.Contract(addr, abi, signer);
@@ -65,7 +72,15 @@ async function connectToEvmNode(url) {
     batchStallTime: 0,
     staticNetwork: true,
   });
-  const signer = await provider.getSigner();
+
+  let signer;
+  if (process.env.GORA_EXAMPLE_EVM_KEY) {
+    const key = process.env.GORA_EXAMPLE_EVM_KEY;
+    const keyHex = key.indexOf("/") >= 0 ? Fs.readFileSync(key, "ascii") : key;
+    signer = new Ethers.NonceManager(new Ethers.Wallet(keyHex, provider));
+  }
+  else
+    signer = await provider.getSigner();
 
   let round
   try { round = await provider.getBlockNumber(); } catch (e) {};
@@ -90,7 +105,7 @@ async function runExample(apiUrl, name) {
     throw solRes.stderr.toString();
 
   const compiled = JSON.parse(solRes.stdout.toString());
-  const args = [ readContractAddr("main_default") ];
+  const args = [ getMainContractAddr() ];
   if (name == "off_chain")
     args.push(Fs.readFileSync("off_chain_example.wasm"));
 
