@@ -94,7 +94,8 @@ export GORA_CONFIG="
 }
 "
 echo "Setting up master/slave network info"
-$GORA_DEV_CLI_TOOL evm-set --network default --setup-master-slave --update-slave
+$GORA_DEV_CLI_TOOL evm-set --network default --update-slave \
+                    --setup-master-slave chain_0,chain_1
 sleep 5
 
 echo "Setting devlopment node's stake"
