@@ -8,6 +8,12 @@ execution workflow differ.
 
 ## Setting up your Gora EVM development environment
 
+ * Make sure you are running Linux by executing:
+   ```
+   uname
+   ```
+   This should print out: `Linux`.
+
  * Check out the developer quick start repository by running:
    ```
    git clone https://github.com/GoraNetwork/developer-quick-start
