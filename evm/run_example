@@ -13,7 +13,7 @@ const Path = require("path");
 const ChildProcess = require("child_process");
 const TimersPromises = require("timers/promises");
 const Ethers = require("ethers");
-const { deploy, loadContract } = require("./deploy.js");
+const { deploy, loadContract } = require("./deploy");
 
 // Solidity compilation command and options.
 const solcCmd = "./solc";
