@@ -52,7 +52,7 @@ provider, so Internet connection is required to run this example.
 Demonstrates Gora's arbitrary off-chain computation capability. Essentially
 identical to the Off-chain computation example for Gora on Algorand.
 
-## Development environment in details
+## Composition of the development environment
 
 Gora EVM development environment relies on the following pieces of software:
 
@@ -80,16 +80,3 @@ it must be running at all times to run Gora smart contracts locally. There is no
 way to start a Gora node or its local blockchain on-demand on per-example basis.
 To end your development session and terminate the script, hit Ctrl-C in the
 terminal window running it.
-
-## Troubleshooting
-
-Gora troubleshooting tools for EVM chains are not yet as developed as for Algorand,
-but they are catching up. Currently you can use CLI `inspect` command to display
-details of past Gora reques(s) still stored on blockchain, e.g.:
-```
-gora inspect --evm-network default --rounds 32
-```
-will display all requests commited in round 32. Specifying round ranges or
-request IDs is possible, run `gora help inspect` for details. Please be aware,
-however, that once the development environment is stopped, all data on the
-local blockchains is lost.
