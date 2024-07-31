@@ -76,8 +76,8 @@ export GORA_CONFIG="
     \"evm\": {
       \"networkDefaults\": {
         \"polling\": 500,
-        \"voteEth\": 300000,
-        \"stakeEth\": 300000
+        \"voteEth\": 10000000,
+        \"stakeEth\": 10000000
       },
       \"networks\": {
         \"default\": {
