@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -x
+# Enable command tracing if asked.
+[ "$GORA_DEV_EVM_SETUP_DEBUG" ] && set -x
 
 NODE_BIN=/usr/bin/node
 GETH_BIN=./geth
