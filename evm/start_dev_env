@@ -39,10 +39,9 @@ done
 
 AXELAR_LOG=axelar.log
 echo "Starting local Axelar relayer, see $AXELAR_LOG for saved output"
-$NODE_BIN ./axelar_relayer 250 \
-          $GETH_URL_default $(cat ./master_key_default.txt) \
-          $GETH_URL_slave $(cat ./master_key_slave.txt) \
-          >$AXELAR_LOG 2>&1 &
+./axelar_relayer 250 $GETH_URL_default $(cat ./master_key_default.txt) \
+                     $GETH_URL_slave $(cat ./master_key_slave.txt) \
+                     >$AXELAR_LOG 2>&1 &
 CHILD_PIDS+=" $!"
 LOGS+=" ./$AXELAR_LOG"
 
@@ -54,7 +53,7 @@ export GORA_DEV_EVM_DEPLOY_KEY="./master_key_default.txt"
 GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0="$(cat ./master_addr_default.txt)" \
 GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1='GORA token' \
 GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
-  $NODE_BIN ./deploy "$GETH_URL_default" token token_default.addr GoraToken.sol
+  ./deploy "$GETH_URL_default" token token_default.addr GoraToken.sol
 echo 0x0000000000000000000000000000000000000000 > token_slave.addr
 
 for CHAIN in 'default' 'slave'; do
@@ -63,7 +62,7 @@ for CHAIN in 'default' 'slave'; do
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
-    $NODE_BIN deploy ${!GETH_URL_VAR} main main_$CHAIN.addr
+    ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr
 done
 
 # Configure and start local Gora node.
