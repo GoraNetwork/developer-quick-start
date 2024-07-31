@@ -1,0 +1,10 @@
+{
+  "description": "Gora developer quick-start package for EVM",
+  "engines": {
+    "node": ">= 18.0.0"
+  },
+  "dependencies": {
+    "axelar-local-dev": "^2.3.3",
+    "ethers.js": "^6.13.2"
+  }
+}
