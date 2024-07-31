@@ -6,7 +6,7 @@ NODE_BIN=/usr/bin/node
 GETH_BIN=./geth
 
 NODE_STAKE=10000
-GETH_HOST=http://localhost
+GETH_HOST=http://127.0.0.1
 GETH_PORT_default=8546
 GETH_PORT_slave=8547
 GETH_URL_default=$GETH_HOST:$GETH_PORT_default
