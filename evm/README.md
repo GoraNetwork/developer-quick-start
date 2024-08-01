@@ -53,7 +53,7 @@ Demonstrates the use of Gora for querying arbitrary HTTP endpoints responding in
 JSON format. <http://jsontest.com> free public website is used as the test data
 provider, so Internet connection is required to run this example.
 
-### Off-chain computation example: [`example_off_chain.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_offchain.sol "Example app on Github")
+### Off-chain computation example: [`example_off_chain.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_off_chain.sol "Example app on Github")
 
 Demonstrates Gora's arbitrary off-chain computation capability. Essentially
 identical to the Off-chain computation example for Gora on Algorand.
