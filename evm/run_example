@@ -120,12 +120,18 @@ async function runExample(apiUrl, name) {
 
   console.log("Making a Gora request");
   const txnReceipt = await (await exampleContract.makeGoraRequest()).wait();
-  console.log(`Gora request made in round "${txnReceipt.blockNumber}"`);
+  console.log(`Done, round "${txnReceipt.blockNumber}", txn "${txnReceipt.hash}"`);
   await TimersPromises.setTimeout(1500);
 
   if (!createdReqId)
     throw "Failed to create Gora request or retrieve its ID";
   console.log(`Created Gora request ID: ${createdReqId}`);
+
+  const delay = process.env.GORA_EXAMPLE_EVM_DELAY;
+  if (delay) {
+    console.log("Delaying response check (seconds):", delay);
+    await TimersPromises.setTimeout(delay * 1000);
+  }
 
   console.log("Checking received result");
   const lastReqId = await exampleContract.lastReqId();
