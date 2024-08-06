@@ -8,11 +8,14 @@ execution workflow differ.
 
 ## Setting up your Gora EVM development environment
 
- * Make sure you are running Linux by executing:
+ * Check the prerequisites:
    ```
    uname
    ```
-   This should print out: `Linux`.
+   should print out `Linux`. Make sure you have [Docker](https://docker.com/).
+   installed. Your Libc version version must be at least `2.32` which can be
+   checked by executing `/lib/libc.so.6`. If it is older, please upgrade your
+   OS.
 
  * Check out the developer quick start repository by running:
    ```
