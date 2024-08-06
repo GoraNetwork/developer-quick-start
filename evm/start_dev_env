@@ -14,6 +14,28 @@ NODE_STAKE=10000
 FUND_AMOUNT=200000
 FUND_DELAY=2
 
+echo 'Checking prerequisites'
+
+if (( $(id -u ) > 0 )); then
+    echo 'Running as a normal user as required'
+else
+    echo 'This script cannot be run as root, please do it as a normal user';
+    exit 1
+fi
+
+
+if [ docker --version 2&> /dev/null ]; then
+    echo 'Docker is missing or unavailable'
+    exit 1
+fi
+echo 'Docker found'
+
+if [ ./geth --version 2&> /dev/null ]; then
+    echo 'Cannot run ./geth, check your libc version or build your own geth and replace the one in this directory'
+    exit 1
+fi
+echo './geth run successfully'
+
 echo 'Preparing Gora local EVM development environment'
 
 for CHAIN in 'default' 'slave'; do
