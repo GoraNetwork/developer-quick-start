@@ -5,132 +5,195 @@
 
 GETH_BIN=./geth
 GETH_HOST=http://127.0.0.1
-GETH_PORT_default=8546
-GETH_PORT_slave=8547
-GETH_URL_default=$GETH_HOST:$GETH_PORT_default
-GETH_URL_slave=$GETH_HOST:$GETH_PORT_slave
+GETH_PORT_MASTER=8546
+GETH_PORT_SLAVE=8547
+GETH_URL_MASTER=$GETH_HOST:$GETH_PORT_MASTER
+GETH_URL_SLAVE=$GETH_HOST:$GETH_PORT_SLAVE
 
 NODE_STAKE=10000
 FUND_AMOUNT=200000
 FUND_DELAY=2
 
-echo 'Checking prerequisites'
-
-if (( $(id -u ) > 0 )); then
-    echo 'Running as a normal user as required'
+if [ "$1" == 'axelar' ] || [ "$1" == '' ]; then
+  echo 'Axelar cross-chain mode enabled'
+  MASTER_CHAIN='default'
+  SLAVE_CHAIN='slave';
 else
-    echo 'This script cannot be run as root, please do it as a normal user';
-    exit 1
+  echo 'Single-chain mode enabled'
+  MASTER_CHAIN="$1";
 fi
 
+# Check prerequisites for development environment.
+function check_prereqs {
 
-if [ docker --version 2&> /dev/null ]; then
-    echo 'Docker is missing or unavailable'
-    exit 1
-fi
-echo 'Docker found'
+  echo 'Checking prerequisites'
+  if (( $(id -u ) > 0 )); then
+      echo 'Running as a normal user as required'
+  else
+      echo 'This script cannot be run as root, please do it as a normal user';
+      exit 1
+  fi
 
-if [ ./geth --version 2&> /dev/null ]; then
-    echo 'Cannot run ./geth, check your libc version or build your own geth and replace the one in this directory'
-    exit 1
-fi
-echo './geth run successfully'
+
+  if [ docker --version 2&> /dev/null ]; then
+      echo 'Docker is missing or unavailable'
+      exit 1
+  fi
+  echo 'Docker found'
+
+  if [ ./geth --version 2&> /dev/null ]; then
+      echo 'Cannot run ./geth, check your libc version or build your own geth and replace the one in this directory'
+      exit 1
+  fi
+  echo './geth run successfully'
+}
+
+# Start geth instances for given chain names.
+function start_geth {
+
+  for CHAIN_ROLE in MASTER SLAVE; do
+
+    GETH_CHAIN_VAR="${CHAIN_ROLE}_CHAIN";
+    CHAIN=${!GETH_CHAIN_VAR}
+    if [ ! $CHAIN ]; then
+      continue;
+    fi
+
+    echo "Starting up EVM node instance for chain: $CHAIN"
+    MASTER_ADDR=$(cat ./master_addr_$CHAIN.txt)
+    FUND_CODE="eth.sendTransaction({from: eth.accounts[0], to: \"$MASTER_ADDR\", value: web3.toWei($MASTER_ADDR, \"ether\")})"
+
+    GETH_PORT_VAR="GETH_PORT_$CHAIN_ROLE"
+    export GETH_HTTP_PORT=${!GETH_PORT_VAR} # must export for geth to pick up
+    GETH_URL="$GETH_HOST:$GETH_HTTP_PORT"
+    GETH_LOG="geth_$CHAIN.log"
+
+    echo "Starting $GETH_BIN on $GETH_URL, see $GETH_LOG for saved output"
+    $GETH_BIN --dev --http --ipcdisable >$GETH_LOG 2>&1 &
+    CHILD_PIDS+=" $!"
+    LOGS+=" ./$GETH_LOG"
+
+    sleep $FUND_DELAY
+    echo "Funding '$MASTER_ADDR' with '$FUND_AMOUNT'"
+    $GETH_BIN --vmdebug --verbosity 5 --exec "$FUND_CODE" attach $GETH_URL
+
+  done
+}
+
+# Configure local Gora node.
+function setup_gora_config {
+
+  GORA_DEV_CLI_TOOL="${GORA_DEV_CLI_TOOL:-../gora_cli}"
+  export GORA_CONFIG_FILE='./.gora'
+
+  if [ $SLAVE_CHAIN ]; then
+    EXTRA_CONFIG="
+          , \"slave\": \"$SLAVE_CHAIN\"
+        },
+        \"$SLAVE_CHAIN\": {
+          \"type\": \"testnet\",
+          \"server\": \"$GETH_URL_SLAVE\",
+          \"mainContract\": \"$(cat ./main_$SLAVE_CHAIN.addr)\",
+          \"privKey\": \"$(cat ./master_key_$SLAVE_CHAIN.txt)\"
+        }
+    ";
+  else
+    EXTRA_CONFIG="}"
+  fi
+
+  export GORA_CONFIG="
+  {
+    \"blockchain\": {
+      \"evm\": {
+        \"networkDefaults\": {
+          \"polling\": 500,
+          \"voteEth\": 10000000,
+          \"stakeEth\": 10000000
+        },
+        \"networks\": {
+          \"$MASTER_CHAIN\": {
+            \"type\": \"testnet\",
+            \"server\": \"$GETH_URL_MASTER\",
+            \"mainContract\": \"$(cat ./main_$MASTER_CHAIN.addr)\",
+            \"privKey\": \"$(cat ./master_key_$MASTER_CHAIN.txt)\"
+          $EXTRA_CONFIG
+        }
+      }
+    },
+    \"deployment\": {
+      \"id\": \"gora-nr-dev\",
+      \"logLevel\": 5,
+      \"stackTrace\": 1
+      $GORA_DEV_EVM_CONFIG_DEPL_EXTRA
+    }
+  }
+  "
+}
+
+# Configure and start up a local Axelar relayer.
+function start_axelar {
+
+  AXELAR_LOG=axelar.log
+  echo "Starting local Axelar relayer, see $AXELAR_LOG for saved output"
+  ./axelar_relayer 250 $GETH_URL_MASTER $(cat ./master_key_$MASTER_CHAIN.txt) \
+                       $GETH_URL_SLAVE $(cat ./master_key_$SLAVE_CHAIN.txt) \
+                       >$AXELAR_LOG 2>&1 &
+  CHILD_PIDS+=" $!"
+  LOGS+=" ./$AXELAR_LOG"
+}
+
+# Deploy Gora smart contracts.
+function deploy_gora_contracts {
+
+  echo "Deploying Gora smart contracts"
+  export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$MASTER_CHAIN.txt"
+
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0="$(cat ./master_addr_$MASTER_CHAIN.txt)" \
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1='GORA token' \
+  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
+    ./deploy $GETH_URL_MASTER token token_$MASTER_CHAIN.addr GoraToken.sol
+  echo 0x0000000000000000000000000000000000000000 > token_$SLAVE_CHAIN.addr
+
+  for CHAIN_ROLE in MASTER SLAVE; do
+
+    GETH_CHAIN_VAR="${CHAIN_ROLE}_CHAIN";
+    CHAIN=${!GETH_CHAIN_VAR}
+    if [ ! $CHAIN ]; then
+      continue;
+    fi
+
+    export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
+    GETH_URL_VAR="GETH_URL_$CHAIN_ROLE"
+    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
+    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
+    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
+      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr
+  done
+}
 
 echo 'Preparing Gora local EVM development environment'
 
-for CHAIN in 'default' 'slave'; do
+check_prereqs;
+start_geth;
 
-  MASTER_ADDR=$(cat ./master_addr_$CHAIN.txt)
-  FUND_CODE="eth.sendTransaction({from: eth.accounts[0], to: \"$MASTER_ADDR\", value: web3.toWei($MASTER_ADDR, \"ether\")})"
-
-  GETH_PORT_VAR="GETH_PORT_$CHAIN"
-  export GETH_HTTP_PORT=${!GETH_PORT_VAR} # must export for geth to pick up
-  GETH_URL="$GETH_HOST:$GETH_HTTP_PORT"
-  GETH_LOG="geth_$CHAIN.log"
-
-  echo "Starting $GETH_BIN on $GETH_URL, see $GETH_LOG for saved output"
-  $GETH_BIN --dev --http --ipcdisable >$GETH_LOG 2>&1 &
-  CHILD_PIDS+=" $!"
-  LOGS+=" ./$GETH_LOG"
-
-  sleep $FUND_DELAY
-  echo "Funding '$MASTER_ADDR' with '$FUND_AMOUNT'"
-  $GETH_BIN --vmdebug --verbosity 5 --exec "$FUND_CODE" attach $GETH_URL
-
-done
-
-AXELAR_LOG=axelar.log
-echo "Starting local Axelar relayer, see $AXELAR_LOG for saved output"
-./axelar_relayer 250 $GETH_URL_default $(cat ./master_key_default.txt) \
-                     $GETH_URL_slave $(cat ./master_key_slave.txt) \
-                     >$AXELAR_LOG 2>&1 &
-CHILD_PIDS+=" $!"
-LOGS+=" ./$AXELAR_LOG"
+if [ $SLAVE_CHAIN ]; then
+  start_axelar;
+fi
 
 sleep 5
 
-echo "Deploying Gora smart contracts"
+deploy_gora_contracts;
+setup_gora_config;
 
-export GORA_DEV_EVM_DEPLOY_KEY="./master_key_default.txt"
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0="$(cat ./master_addr_default.txt)" \
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1='GORA token' \
-GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
-  ./deploy "$GETH_URL_default" token token_default.addr GoraToken.sol
-echo 0x0000000000000000000000000000000000000000 > token_slave.addr
-
-for CHAIN in 'default' 'slave'; do
-  export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
-  GETH_URL_VAR="GETH_URL_$CHAIN"
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
-  GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
-    ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr
-done
-
-# Configure and start local Gora node.
-GORA_DEV_CLI_TOOL="${GORA_DEV_CLI_TOOL:-../gora_cli}"
-export GORA_CONFIG_FILE='./.gora'
-export GORA_CONFIG="
-{
-  \"blockchain\": {
-    \"evm\": {
-      \"networkDefaults\": {
-        \"polling\": 500,
-        \"voteEth\": 10000000,
-        \"stakeEth\": 10000000
-      },
-      \"networks\": {
-        \"default\": {
-          \"type\": \"testnet\",
-          \"slave\": \"slave\",
-          \"server\": \"$GETH_URL_default\",
-          \"mainContract\": \"$(cat ./main_default.addr)\",
-          \"privKey\": \"$(cat ./master_key_default.txt)\"
-        },
-        \"slave\": {
-          \"type\": \"testnet\",
-          \"server\": \"$GETH_URL_slave\",
-          \"mainContract\": \"$(cat ./main_slave.addr)\",
-          \"privKey\": \"$(cat ./master_key_slave.txt)\"
-        }
-      }
-    }
-  },
-  \"deployment\": {
-    \"id\": \"gora-nr-dev\",
-    \"logLevel\": 5,
-    \"stackTrace\": 1
-    $GORA_DEV_EVM_CONFIG_DEPL_EXTRA
-  }
-}
-"
-echo "Setting up master/slave network info"
-GORA_DEV_MODE=3 $GORA_DEV_CLI_TOOL evm-set --network default --update-master \
-                                   --setup-master-slave chain_0,chain_1
-sleep 5
+if [ $SLAVE_CHAIN ]; then
+  echo "Setting up master/slave network info"
+  GORA_DEV_MODE=3 $GORA_DEV_CLI_TOOL evm-set --network $MASTER_CHAIN --update-master \
+                                     --setup-master-slave chain_0,chain_1
+  sleep 5
+fi
 
 echo "Setting devlopment node's stake"
-$GORA_DEV_CLI_TOOL evm-set --network default --stake $NODE_STAKE
+$GORA_DEV_CLI_TOOL evm-set --network $MASTER_CHAIN --stake $NODE_STAKE
 
 GORA_LOG=./gora.log
 LOGS+=" $GORA_LOG"
