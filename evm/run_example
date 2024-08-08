@@ -23,14 +23,15 @@ const solcOpts = [ "--no-color", "--combined-json", "abi,bin" ];
 function readContractAddr(name) {
 
   const file = name + ".addr";
+  console.log(`Reading contract address from "${file}"`);
   return Fs.existsSync(file) ? Fs.readFileSync(file, "ascii") : null;
 }
 
 // Return Gora main contract address.
-function getMainContractAddr() {
+function getMainContractAddr(network) {
 
   return process.env.GORA_EXAMPLE_EVM_MAIN_ADDR
-         || readContractAddr("main_default");
+         || readContractAddr("main_" + network);
 }
 
 // Enable logging of a contracts log messages via console.
@@ -46,9 +47,11 @@ async function enableContractLogs(contract, name) {
 }
 
 // Load Gora main contract, return its instance.
-async function setupGoraContract(signer) {
+async function setupGoraContract(signer, network) {
 
-  const addr = getMainContractAddr();
+  const addr = getMainContractAddr(network);
+  if (!addr)
+    throw `Unable to determine Gora main contract address for network "${network}"`;
   console.log(`Using address "${addr}" for Gora main contract`);
   const [ abi ] = loadContract("main");
   const res = new Ethers.Contract(addr, abi, signer);
@@ -91,10 +94,10 @@ async function connectToEvmNode(url) {
 }
 
 // Run an EVM example by name.
-async function runExample(apiUrl, name) {
+async function runExample(apiUrl, name, network) {
 
   let [ signer, provider ] = await connectToEvmNode(apiUrl);
-  const goraContract = await setupGoraContract(signer);
+  const goraContract = await setupGoraContract(signer, network);
 
   const solName = `example_${name}.sol`;
   const solArgs = [ ...solcOpts, solName ];
@@ -105,7 +108,7 @@ async function runExample(apiUrl, name) {
     throw solRes.stderr.toString();
 
   const compiled = JSON.parse(solRes.stdout.toString());
-  const args = [ getMainContractAddr() ];
+  const args = [ getMainContractAddr(network) ];
   if (name == "off_chain")
     args.push(Fs.readFileSync("off_chain_example.wasm"));
 
@@ -150,13 +153,14 @@ async function runExample(apiUrl, name) {
 
 if (process.argv.length < 3) {
   const scriptName = Path.basename(process.argv[1]);
-  console.log(`Usage: ${scriptName} <example name>`);
-  console.log(`Example: ${scriptName} basic`);
+  console.log(`Usage: ${scriptName} <example name> [network name]`);
+  console.log(`Example: ${scriptName} basic baselocal`);
   return;
 }
 
 const exampleName = process.argv[2];
-console.log(`Running example: ${exampleName}`);
+const networkName = process.argv[3] || "axethlocal";
+console.log(`Running example "${exampleName}" on network "${networkName}"`);
 
 const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || "http://localhost:8546";
-runExample(apiUrl, exampleName);
+runExample(apiUrl, exampleName, networkName);

@@ -6,7 +6,7 @@ const Fs = require("fs");
 const AxelarLocalDev = require("@axelar-network/axelar-local-dev");
 
 // Network names to use for files with addresses of deployed contracts.
-const netNames = [ "default", "slave" ];
+const netNames = [ "axethlocal", "axbaselocal" ];
 
 async function main() {
 

@@ -16,8 +16,8 @@ FUND_DELAY=2
 
 if [ "$1" == 'axelar' ] || [ "$1" == '' ]; then
   echo 'Axelar cross-chain mode enabled'
-  MASTER_CHAIN='default'
-  SLAVE_CHAIN='slave';
+  MASTER_CHAIN='axethlocal'
+  SLAVE_CHAIN='axbaselocal';
 else
   echo 'Single-chain mode enabled'
   MASTER_CHAIN="$1";
