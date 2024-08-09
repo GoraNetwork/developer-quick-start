@@ -20,6 +20,14 @@ contract GoraExample {
   // Arbitrary piece of data to pass to the destination method.
   string constant exampleUserData = "my user data";
 
+  // Size of EVM "gas tank" that will be created with the request, in bytes.
+  // Gas tank is an array variable that is emptied before calling the
+  // destination contract, providing the transaction with additional gas.
+  // The size of gas tank required is best determined experimentally.
+  // The use of gas tank is optional, you are welcome to implement one
+  // yourself in the destination contract..
+  uint exampleGasTankSize = 10;
+
   address goraAddr; // Gora smart contract address
   bytes public lastValue; // last value received from Gora
   bytes32 public lastReqId; // Gora request ID for the last value received
@@ -48,7 +56,7 @@ contract GoraExample {
 
     bytes memory reqSig = abi.encodeWithSignature(goraRequestSigSrc,
       2, exampleUrl, exampleValueExpr, exampleDestAddr, exampleDestMethod,
-      exampleUserData
+      exampleUserData, exampleGasTankSize
     );
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
     if (!isOk)
