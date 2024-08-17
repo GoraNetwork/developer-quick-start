@@ -5,6 +5,7 @@ const Ethers = require("ethers");
 const Fs = require("fs");
 const TimersPromises = require("timers/promises");
 
+// Load and return a compiled smart contract in combined JSON format.
 function loadContract(name, compiled, solName) {
 
   if (!compiled) {
@@ -14,8 +15,10 @@ function loadContract(name, compiled, solName) {
   }
 
   solName ||= name + ".sol";
-  const nameKey = Object.keys(compiled.contracts)
-                        .find(x => x.match(`(^|/)${solName}:`));
+  const findFunc = solName.indexOf(":") > -1 // contract name included?
+                   ? x => x == solName
+                   : x => x.match(`(^|/)${solName}:`);
+  const nameKey = Object.keys(compiled.contracts).find(findFunc);
   if (!nameKey)
     throw `Smart contract "${solName}" not found in the JSON file`;
 
@@ -26,13 +29,14 @@ function loadContract(name, compiled, solName) {
   return [ abi, bin ];
 }
 
+// Mint tokens using given contract if it looks like a token contract.
 async function mintMaybe(name, contract) {
 
   if (!name.match(/(^|[^a-z])token([^a-z]|$)/))
     return;
 
   const amount = Number(process.env.GORA_DEV_DEPLOY_TOKEN_MINT_AMOUNT)
-                 || 10_000_000_000;
+                 || 10_000_000;
   if (!amount)
     return;
 
@@ -41,6 +45,7 @@ async function mintMaybe(name, contract) {
   await (await contract.mint(amount)).wait();
 }
 
+// Deploy a compiled smart contract.
 async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args }) {
 
   let provider
