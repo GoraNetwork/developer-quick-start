@@ -156,8 +156,6 @@ function deploy_gora_contracts {
   if [ $SLAVE_CHAIN ]; then
     echo 0x0000000000000000000000000000000000000000 > token_$SLAVE_CHAIN.addr
     MAIN_CLASS=GoraAxelarized
-    export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gw_$CHAIN.addr)
-    export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3=$(cat ./axelar_gas_$CHAIN.addr)
   else
     MAIN_CLASS=Gora
   fi
@@ -173,13 +171,20 @@ function deploy_gora_contracts {
     export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
     GETH_URL_VAR="GETH_URL_$CHAIN_ROLE"
 
+    if [ $SLAVE_CHAIN ]; then
+      export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gw_$CHAIN.addr)
+      export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3=$(cat ./axelar_gas_$CHAIN.addr)
+    fi
+
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=0 \
       ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:$MAIN_CLASS
-  done
 
-  unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2
-  unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3
+    if [ $SLAVE_CHAIN ]; then
+      unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2
+      unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3
+    fi
+done
 }
 
 echo 'Preparing Gora local EVM development environment'
