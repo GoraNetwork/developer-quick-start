@@ -167,7 +167,7 @@ function deploy_gora_contracts {
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
-      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr
+      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:GoraAxelarized
   done
 }
 
