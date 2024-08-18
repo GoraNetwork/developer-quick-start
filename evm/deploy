@@ -42,7 +42,8 @@ async function mintMaybe(name, contract) {
 
   console.log(`Token contract detected, minting "${amount}" token(s)`);
   await TimersPromises.setTimeout(1000);
-  await (await contract.mint(amount)).wait();
+  const decimals = await contract.decimals();
+  await (await contract.mint(BigInt(amount) * 10n**decimals)).wait();
 }
 
 // Deploy a compiled smart contract.
