@@ -11,7 +11,7 @@ GETH_URL_MASTER=$GETH_HOST:$GETH_PORT_MASTER
 GETH_URL_SLAVE=$GETH_HOST:$GETH_PORT_SLAVE
 
 NODE_STAKE=10000
-FUND_AMOUNT=200000
+FUND_AMOUNT=1000000000
 FUND_DELAY=2
 
 if [ "$1" == 'axelar' ] || [ "$1" == '' ]; then
@@ -152,7 +152,15 @@ function deploy_gora_contracts {
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1='GORA token' \
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
     ./deploy $GETH_URL_MASTER token token_$MASTER_CHAIN.addr GoraToken.sol
-  echo 0x0000000000000000000000000000000000000000 > token_$SLAVE_CHAIN.addr
+
+  if [ $SLAVE_CHAIN ]; then
+    echo 0x0000000000000000000000000000000000000000 > token_$SLAVE_CHAIN.addr
+    MAIN_CLASS=GoraAxelarized
+    export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gw_$CHAIN.addr)
+    export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3=$(cat ./axelar_gas_$CHAIN.addr)
+  else
+    MAIN_CLASS=Gora
+  fi
 
   for CHAIN_ROLE in MASTER SLAVE; do
 
@@ -164,11 +172,14 @@ function deploy_gora_contracts {
 
     export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
     GETH_URL_VAR="GETH_URL_$CHAIN_ROLE"
+
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
-    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=$(cat ./axelar_gw_$CHAIN.addr) \
-    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gas_$CHAIN.addr) \
-      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:GoraAxelarized
+    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=0 \
+      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:$MAIN_CLASS
   done
+
+  unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2
+  unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3
 }
 
 echo 'Preparing Gora local EVM development environment'
