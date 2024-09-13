@@ -122,6 +122,7 @@ async function runExample(apiUrl, name, network) {
   goraContract.on("CreateRequest", (_, reqId) => createdReqId = reqId);
 
   console.log("Making a Gora request");
+  await exampleContract.runner.reset(); // guard against "nonce already used"
   const txnReceipt = await (await exampleContract.makeGoraRequest()).wait();
   console.log(`Done, round "${txnReceipt.blockNumber}", txn "${txnReceipt.hash}"`);
   await TimersPromises.setTimeout(1500);
