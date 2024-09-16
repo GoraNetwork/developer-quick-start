@@ -125,28 +125,39 @@ async function runExample(apiUrl, name, network) {
   await exampleContract.runner.reset(); // guard against "nonce already used"
   const txnReceipt = await (await exampleContract.makeGoraRequest()).wait();
   console.log(`Done, round "${txnReceipt.blockNumber}", txn "${txnReceipt.hash}"`);
-  await TimersPromises.setTimeout(1500);
+
+  const timeout = process.env.GORA_EXAMPLE_EVM_TIMEOUT || 60;
+  const timeoutInterval = 1000;
+  for (let elapsed = 0; elapsed <= timeout; elapsed += timeoutInterval) {
+    if (createdReqId)
+      break;
+    await TimersPromises.setTimeout(timeoutInterval);
+  }
 
   if (!createdReqId)
     throw "Failed to create Gora request or retrieve its ID";
   console.log(`Created Gora request ID: ${createdReqId}`);
 
-  const delay = process.env.GORA_EXAMPLE_EVM_DELAY;
-  if (delay) {
-    console.log("Delaying response check (seconds):", delay);
-    await TimersPromises.setTimeout(delay * 1000);
+  let isReceived = false;
+  console.log(`Waiting for response up to "${timeout}" ms.`);
+
+  for (let elapsed = 0; elapsed <= timeout; elapsed += timeoutInterval) {
+    const lastReqId = await exampleContract.lastReqId();
+    if (lastReqId == createdReqId) {
+      isReceived = true;
+      break;
+    }
+    await TimersPromises.setTimeout(timeoutInterval);
   }
 
-  console.log("Checking received result");
-  const lastReqId = await exampleContract.lastReqId();
-  if (lastReqId == createdReqId)
+  if (isReceived) {
     console.log("Success, response received by destination method");
+    const lastValueRaw = await exampleContract.lastValue();
+    const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
+    console.log(`Response value: "${lastValueStr}"`);
+  }
   else
     console.log("Fail, response NOT received by destination method");
-
-  const lastValueRaw = await exampleContract.lastValue();
-  const lastValueStr = Buffer.from(lastValueRaw.slice(2), "hex").toString();
-  console.log(`Response value: "${lastValueStr}"`);
 
   goraContract.removeAllListeners();
   exampleContract.removeAllListeners();
