@@ -5,23 +5,16 @@
 
 GETH_BIN=./geth
 GETH_HOST=http://127.0.0.1
+
+# Support for master/slave chain setup is now removed, but is likely to come
+# back. Hence treatment of the only chain as "master".
 GETH_PORT_MASTER=8546
-GETH_PORT_SLAVE=8547
 GETH_URL_MASTER=$GETH_HOST:$GETH_PORT_MASTER
-GETH_URL_SLAVE=$GETH_HOST:$GETH_PORT_SLAVE
 
 NODE_STAKE=10000
 FUND_AMOUNT=1000000000
 FUND_DELAY=2
-
-if [ "$1" == 'axelar' ] || [ "$1" == '' ]; then
-  echo 'Axelar cross-chain mode enabled'
-  MASTER_CHAIN='axethlocal'
-  SLAVE_CHAIN='axbaselocal';
-else
-  echo 'Single-chain mode enabled'
-  MASTER_CHAIN="$1";
-fi
+MASTER_CHAIN=baselocal
 
 # Check prerequisites for development environment.
 function check_prereqs {
@@ -51,7 +44,7 @@ function check_prereqs {
 # Start geth instances for given chain names.
 function start_geth {
 
-  for CHAIN_ROLE in MASTER SLAVE; do
+  for CHAIN_ROLE in MASTER; do
 
     GETH_CHAIN_VAR="${CHAIN_ROLE}_CHAIN";
     CHAIN=${!GETH_CHAIN_VAR}
@@ -86,21 +79,6 @@ function setup_gora_config {
   GORA_DEV_CLI_TOOL="${GORA_DEV_CLI_TOOL:-../gora_cli}"
   export GORA_CONFIG_FILE='./.gora'
 
-  if [ $SLAVE_CHAIN ]; then
-    EXTRA_CONFIG="
-          , \"slave\": \"$SLAVE_CHAIN\"
-        },
-        \"$SLAVE_CHAIN\": {
-          \"type\": \"testnet\",
-          \"server\": \"$GETH_URL_SLAVE\",
-          \"mainContract\": \"$(cat ./main_$SLAVE_CHAIN.addr)\",
-          \"privKey\": \"$(cat ./master_key_$SLAVE_CHAIN.txt)\"
-        }
-    ";
-  else
-    EXTRA_CONFIG="}"
-  fi
-
   export GORA_CONFIG="
   {
     \"blockchain\": {
@@ -116,7 +94,7 @@ function setup_gora_config {
             \"server\": \"$GETH_URL_MASTER\",
             \"mainContract\": \"$(cat ./main_$MASTER_CHAIN.addr)\",
             \"privKey\": \"$(cat ./master_key_$MASTER_CHAIN.txt)\"
-          $EXTRA_CONFIG
+          }
         }
       }
     },
@@ -124,22 +102,9 @@ function setup_gora_config {
       \"id\": \"gora-nr-dev\",
       \"logLevel\": 5,
       \"stackTrace\": 1
-      $GORA_DEV_EVM_CONFIG_DEPL_EXTRA
     }
   }
   "
-}
-
-# Configure and start up a local Axelar relayer.
-function start_axelar {
-
-  AXELAR_LOG=axelar.log
-  echo "Starting local Axelar relayer, see $AXELAR_LOG for saved output"
-  ./axelar_relayer 250 $GETH_URL_MASTER $(cat ./master_key_$MASTER_CHAIN.txt) \
-                       $GETH_URL_SLAVE $(cat ./master_key_$SLAVE_CHAIN.txt) \
-                       >$AXELAR_LOG 2>&1 &
-  CHILD_PIDS+=" $!"
-  LOGS+=" ./$AXELAR_LOG"
 }
 
 # Deploy Gora smart contracts.
@@ -153,14 +118,7 @@ function deploy_gora_contracts {
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
     ./deploy $GETH_URL_MASTER token token_$MASTER_CHAIN.addr GoraToken.sol
 
-  if [ $SLAVE_CHAIN ]; then
-    echo 0x0000000000000000000000000000000000000000 > token_$SLAVE_CHAIN.addr
-    MAIN_CLASS=GoraAxelarized
-  else
-    MAIN_CLASS=Gora
-  fi
-
-  for CHAIN_ROLE in MASTER SLAVE; do
+  for CHAIN_ROLE in MASTER; do
 
     GETH_CHAIN_VAR="${CHAIN_ROLE}_CHAIN";
     CHAIN=${!GETH_CHAIN_VAR}
@@ -171,19 +129,9 @@ function deploy_gora_contracts {
     export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
     GETH_URL_VAR="GETH_URL_$CHAIN_ROLE"
 
-    if [ $SLAVE_CHAIN ]; then
-      export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2=$(cat ./axelar_gw_$CHAIN.addr)
-      export GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3=$(cat ./axelar_gas_$CHAIN.addr)
-    fi
-
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
     GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=0 \
-      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:$MAIN_CLASS
-
-    if [ $SLAVE_CHAIN ]; then
-      unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2
-      unset GORA_DEV_EVM_DEPLOY_CONSTR_ARG_3
-    fi
+      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:Gora
 done
 }
 
@@ -192,21 +140,8 @@ echo 'Preparing Gora local EVM development environment'
 check_prereqs;
 start_geth;
 
-if [ $SLAVE_CHAIN ]; then
-  start_axelar;
-fi
-
-sleep 5
-
 deploy_gora_contracts;
 setup_gora_config;
-
-if [ $SLAVE_CHAIN ]; then
-  echo "Setting up master/slave network info"
-  GORA_DEV_MODE=3 $GORA_DEV_CLI_TOOL evm-set --network $MASTER_CHAIN --update-master \
-                                     --setup-master-slave chain_0,chain_1
-  sleep 5
-fi
 
 echo "Setting devlopment node's stake"
 $GORA_DEV_CLI_TOOL evm-set --network $MASTER_CHAIN --stake $NODE_STAKE
