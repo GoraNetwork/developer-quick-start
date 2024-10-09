@@ -74,18 +74,13 @@ Gora EVM development environment relies on the following pieces of software:
    Hardhat is not used because it has shown issues with multiple concurrent
    connections and was lagging behind recent Ethereum forks feature-wise.
 
- * Mock Axelar cross-chain bridge (`axelar_relayer`). Relays cross-chain
-   messages between local master and slave networks provided by Geth.
-   The script is essentially a wrapper client written by Gora around Axelar
-   local development API.
-
  * Gora smart contracts (files with `.compiled` extension), already compiled
    into combined JSON format.
 
-`start_dev_env` script starts Geth instances and the Axelar relayer, deploys Gora
-smart contracts and stays in the foreground, displaying log messages from the
-above as they come. Contrary to Gora Developer Quick Start package for Algorand,
-it must be running at all times to run Gora smart contracts locally. There is no
-way to start a Gora node or its local blockchain on-demand on per-example basis.
-To end your development session and terminate the script, hit Ctrl-C in the
-terminal window running it.
+`start_dev_env` script starts Geth instance, deploys Gora smart contracts and
+stays in the foreground, displaying log messages from the above as they come.
+Contrary to Gora Developer Quick Start package for Algorand, it must be running
+at all times to run Gora smart contracts locally. There is no way to start a
+Gora node or its local blockchain on-demand on per-example basis.  To end your
+development session and terminate the script, hit Ctrl-C in the terminal window
+running it.

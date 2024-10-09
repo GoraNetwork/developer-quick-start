@@ -76,14 +76,15 @@ async function connectToEvmNode(url) {
     staticNetwork: true,
   });
 
-  let signer;
+  let rawSigner;
   if (process.env.GORA_EXAMPLE_EVM_KEY) {
     const key = process.env.GORA_EXAMPLE_EVM_KEY;
     const keyHex = key.indexOf("/") >= 0 ? Fs.readFileSync(key, "ascii") : key;
-    signer = new Ethers.NonceManager(new Ethers.Wallet(keyHex, provider));
+    rawSigner = new Ethers.Wallet(keyHex, provider);
   }
   else
-    signer = await provider.getSigner();
+    rawSigner = await provider.getSigner();
+  const signer = new Ethers.NonceManager(rawSigner);
 
   let round
   try { round = await provider.getBlockNumber(); } catch (e) {};
@@ -171,7 +172,7 @@ if (process.argv.length < 3) {
 }
 
 const exampleName = process.argv[2];
-const networkName = process.argv[3] || "axethlocal";
+const networkName = process.argv[3] || "baselocal";
 console.log(`Running example "${exampleName}" on network "${networkName}"`);
 
 const apiUrl = process.env.GORA_EXAMPLE_EVM_API_URL || "http://localhost:8546";
