@@ -72,7 +72,8 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   }
 
   const signerAddr = await signer.getAddress();
-  console.log("Signer:", signerAddr);
+  const balance = await provider.getBalance(signerAddr);
+  console.log(`Signer "${signerAddr}" with balance "${balance}"`);
 
   const constrArgs = args || [];
   for (const varName in process.env) {
