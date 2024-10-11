@@ -1,14 +1,13 @@
-# Gora developer quick start package for Base and EVM-compatible networks
+# Gora developer quick start package for Base
 
 Here you will find examples and support tools for developing smart contracts with
 Gora on [Base](https://base.org/) and potentially other EVM-compatible networks.
-
 For general information on Gora Developer Quick Start package as well as on
 developing Algorand applications, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
 Gora Base (EVM) examples are modelled after Algorand Gora examples, but the toolset
 and execution workflow differ.
 
-## Using Gora on Base mainnet, Base Sepolia testnet
+## Using Gora on Base mainnet or Base Sepolia testnet
 
  Gora smart contract addresses for Base mainnet and testnet networks are as follows:
 
@@ -16,15 +15,19 @@ and execution workflow differ.
  * Base Sepolia testnet: `0xcB201275Cb25A589f3877912815d5f17f66D4f13`
 
  For deployment to public blockchain networks, Gora does not require any specific
- toolchain. Smart contract addresses listed above and knowledge of the basic
- APIs given in the examples is all you need to start using Gora with whatever
- EVM tools you prefer.
+ toolchain. Smart contract addresses listed above and the knowledge of basic
+ APIs given in the examples is all you need to start using Gora with EVM
+ development tools of your choice.
 
  To learn how to use Gora from your smart contracts, it is best to read
- extensively commented Solidity examples in this repository. You should then be
- able to integrate Gora calls and response handling into your smart contracts
- with ease. If you would like to run the examples or debug your Gora
- applications locally, read on.
+ extensively commented Solidity examples in this repository:
+
+ * [`example_basic.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_basic.sol "Example app on Github")
+ * [`example_off_chain.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_off_chain.sol "Example app on Github")
+
+ You should then be able to integrate Gora calls and response handling into your
+ smart contracts with ease. If you would like to run the examples or debug your
+ Gora applications locally, read on.
 
 ## Setting up your Gora EVM development environment
 
