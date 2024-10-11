@@ -1,3 +1,7 @@
+// Demonstrate the use of Gora for querying arbitrary HTTP endpoints responding
+// in JSON format. http://jsontest.com free public website is used as the test
+// data provider, so an Internet connection is required to run this example.
+
 pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 

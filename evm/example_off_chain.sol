@@ -1,3 +1,7 @@
+// Demonstrate Gora's arbitrary off-chain computation capability. Public JSON
+// APIs are used to query required data, so an Internet connection is necessary
+// to run this example.
+
 pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
