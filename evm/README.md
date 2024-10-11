@@ -1,10 +1,30 @@
-# Gora developer quick start package for Ethereum
+# Gora developer quick start package for Base and EVM-compatible networks
 
 Here you will find examples and support tools for developing smart contracts with
-Gora on EVM networks. For general information on Gora Developer Quick Start
-package as well as on developing Algorand applications, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
-EVM Gora examples are modelled after Algorand Gora examples, but the toolset and
-execution workflow differ.
+Gora on [Base](https://base.org/) and potentially other EVM-compatible networks.
+
+For general information on Gora Developer Quick Start package as well as on
+developing Algorand applications, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
+Gora Base (EVM) examples are modelled after Algorand Gora examples, but the toolset
+and execution workflow differ.
+
+## Using Gora on Base mainnet, Base Sepolia testnet
+
+ Gora smart contract addresses for Base mainnet and testnet networks are as follows:
+
+ * Base mainnet: `0xd4c99F88095F32dF993030d9a6080e3BE723F617`
+ * Base Sepolia testnet: `0xcB201275Cb25A589f3877912815d5f17f66D4f13`
+
+ For deployment to public blockchain networks, Gora does not require any specific
+ toolchain. Smart contract addresses listed above and knowledge of the basic
+ APIs given in the examples is all you need to start using Gora with whatever
+ EVM tools you prefer.
+
+ To learn how to use Gora from your smart contracts, it is best to read
+ extensively commented Solidity examples in this repository. You should then be
+ able to integrate Gora calls and response handling into your smart contracts
+ with ease. If you would like to run the examples or debug your Gora
+ applications locally, read on.
 
 ## Setting up your Gora EVM development environment
 
