@@ -11,7 +11,7 @@ EVM-compatible blockchains.
 ## Included Solidity examples
 
 The following extensively commented examples are provided as hands-on
-documentation and possibly templates for your own  applications:
+documentation and potential templates for your own  applications:
 
  * [`example_basic.sol`](./example_basic.sol "Example app on Github")
    - getting data from a public JSON API
@@ -24,17 +24,19 @@ documentation and possibly templates for your own  applications:
 > If you are not too experienced with Solidity, or just want to run Gora examples
 > or experiment modifying them, please skip to the next section.
 
-Consider source code examples linked above. For deployment, supply *Gora main
-smart contract address* as the first argument to the constructor, depending on
-the public network you are deploying to:
+Consider source code examples linked above. Integrate the APIs exposed in them
+into your own smart contracts. Or deploy an example as is using your preferred
+setup, then modify it to build your app. For deployment, supply *Gora main smart
+contract address* as the first argument to the constructor, depending on the
+public network you are deploying to:
 
   * Base Sepolia: `0xcb201275cb25a589f3877912815d5f17f66d4f13`
   * Base Mainnet: `0xd4c99f88095f32df993030d9a6080e3be723f617`
 
-Once you deploy your smart contract, you should be ready to issue Gora requests
-and receive Gora responses. For Base Sepolia, there is currently no fee for
-Gora requests. But for Base Mainnet, you must ensure you have some Gora tokens
-on the querying account's balance to pay for them.
+Once deployed, your smart contract should be able ready to issue Gora requests
+and receive Gora responses. For Base Sepolia, there is currently no fee for Gora
+requests. But for Base Mainnet, you must have some Gora tokens on the querying
+account's balance to pay for them.
 
 > [!NOTE]
 > To develop your own applications with Gora and to deploy them to production
