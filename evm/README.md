@@ -1,20 +1,29 @@
-# Gora Developer Quick Start package for EVM-compatible blockchains
+# Gora Developer Quick Start for EVM-compatible blockchains
 
 Here you will find examples and support tools for developing smart contracts with
 [Gora](https://gora.io/) on [Base](https://base.org/) and potentially other
 EVM-compatible blockchains.
 
 > [!NOTE]
-> For developing Algorand applications and general information on Gora Developer
-> Quick Start, go [here](../README.md).
+> For developing *Algorand* applications and for general information on Gora
+> Developer Quick Start, go [here](../README.md).
+
+Experienced Soidity developers are welcome to begin by perusing source code
+examples which they may find sufficient to get started:
+
+ * [`example_basic.sol`](./example_basic.sol "Example app on Github")
+ * [`example_off_chain.sol`](./example_off_chain.sol "Example app on Github")
+
+If you are not too experienced with Solidity, or just want to run, modify Gora
+examples, or experiment with them, we have step-by-step instructions below.
+To develop your own applications with Gora and to deploy them to production
+networks, you are expected to use tools of your own choice. Gora does not try to
+bind you to any specific EVM toolchain.
 
 ## Setting up the environment
 
 Following the steps below will set you up with an environment for compiling
-and deploying included smart contract examples. You will also be able to modify
-them and experiment with them if you wish. To develop your own applications with
-Gora and deploy them to production networks, you are expected to use tools of
-your own choice. Gora does not try to bind you to any specific EVM toolchain.
+and deploying Gora smart contract examples. 
 
 * **Repository cloning and prerequisites**
 
