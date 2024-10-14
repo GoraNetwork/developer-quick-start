@@ -121,7 +121,7 @@ $ export GORA_EXAMPLE_EVM_KEY=./my_base_sepolia_private_hex_key.txt
 ```
 `./my_base_sepolia_private_hex_key.txt` is the example path to a text file
 containing private key for the account you want to use for deployment,
-in hex form. It can usually be found in account tools section if wallet
+in hex form. It can usually be found in account tools section of wallet
 software such as Metamask.
 
 The environment variables will be picked up by the example-running script
