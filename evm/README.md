@@ -56,17 +56,42 @@ continue to the next step. If the output is anything else, you may proceed
 at your own risk, but with a non-Unix OS you will almost certainly fail.
 
 ### 2. Clone this repository
-Run: `git clone https://github.com/GoraNetwork/developer-quick-start`.
+
+Install `git` if not already done. Then run: `git clone https://github.com/GoraNetwork/developer-quick-start`.
+You should get an output like:
+```
+Cloning into 'developer-quick-start'...
+remote: Enumerating objects: 790, done.
+remote: Counting objects: 100% (232/232), done.
+remote: Compressing objects: 100% (145/145), done.
+remote: Total 790 (delta 156), reused 159 (delta 85), pack-reused 558 (from 1)
+Receiving objects: 100% (790/790), 67.78 MiB | 1.43 MiB/s, done.
+Resolving deltas: 100% (469/469), done.
+$
+```
 
 ### 3. Change to EVM subdirectory and install NPM dependencies
+
+Execute the following command:
 ```
 cd developer-quick-start/evm
 npm i
 ```
 
+You should then see something like this:
+```
+added 9 packages, and audited 10 packages in 3s
+3 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+$
+```
+
+If no errors popped up, proceed to the next step.
+
 ###  4. Setup target blockchain network
 
-> [!IMPORTANT] 
+> [!IMPORTANT]
 > Examples can be run on either local built-in blockchain network, or a public
 > network such as [Base Sepolia](https://sepolia.basescan.org/). We generally
 > recommend using the local network for development and trying things out. But
@@ -81,7 +106,7 @@ local EVM nodes as well as local Gora node. It must be running while you deploy
 and run the example scripts. It is the default configuration for running examples,
 so no additional setup will be necessary. To terminate the script, ending the
 development session, hit, `Ctrl-C`.
-   
+
 #### Option 2: Use a public network
 
 Public network configuration is set via environment variables. For example,
