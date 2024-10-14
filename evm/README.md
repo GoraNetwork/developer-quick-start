@@ -4,33 +4,33 @@ Here you will find examples and support tools for developing smart contracts wit
 [Gora](https://gora.io/) on [Base](https://base.org/) and potentially other
 EVM-compatible blockchains.
 
+> [!NOTE]
+> For developing Algorand applications and general information on Gora Developer
+> Quick Start, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
+
+## Setting up the environment
+
 Following the steps below will set you up with an environment for compiling
 and deploying included smart contract examples. You will also be able to modify
 them and experiment with them if you wish. To develop your own applications with
 Gora and deploy them to production networks, you are expected to use tools of
 your own choice. Gora does not try to bind you to any specific EVM toolchain.
 
-> [!IMPORTANT]
-> For developing Algorand applications and general information on Gora Developer
-> Quick Start, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
+* **Repository cloning and prerequisites**
 
-## Setting up the environment
-
-- **Repository cloning and prerequisites**
-
-  - Ensure that you are running Linux by executing: `uname`. This should print
+  * Ensure that you are running Linux by executing: `uname`. This should print
     out: `Linux`.
-  - Check out the developer quick start repository by running:
+  * Check out the developer quick start repository by running:
     ```
     git clone https://github.com/GoraNetwork/developer-quick-start
     ```
-  - Change to `evm` subdirectory and install NPM dependencies:
+  * Change to `evm` subdirectory and install NPM dependencies:
     ```
     cd developer-quick-start/evm
     npm i
     ```
 
- - **Target blockchain network**
+ * **Target blockchain network**
 
    *This package can deploy and run examples using its local built-in blockchain
    network, or a public network such as [Base Sepolia](https://sepolia.basescan.org/).
