@@ -14,9 +14,12 @@ with most of the steps described here and are welcome to follow them at their
 own risk. Readers must be comfortable with using command-line tools, the
 Algorand blockchain and Python programming language.
 
-## Setting up your Gora development environment
+*Users on EVM-compatible chains such as [Base](https://base.org/), please
+continue [here](./evm/README.md)*
 
-There are four essential pieces to a Gora development environment:
+## Setting up your Gora development environment for Algorand
+
+There are four essential pieces to a Gora Algorand development environment:
 
  * An Algorand node providing local simulated Algorand network
  * Algorand Python libraries for smart contracts and blockchain APIs
@@ -190,12 +193,10 @@ app verbatim, as a byte string constant. For more off-chain executable
 specification options as well as other details on the off-chain computation
 feature, refer to Gora off-chain API documentation.
 
-### Experimental EVM examples
+### Base (EVM) examples
 
-The `evm` subdirectory contains examples that use experimental EVM support.
-These require a source checkout of the GNR repo since it has not yet been
-included in any public release. So at this time these examples are for internal
-use only.
+The `evm` subdirectory contains examples and tools for the Base blockchain or
+potentially any EVM-compatible network.
 
 ## Troubleshooting
 
