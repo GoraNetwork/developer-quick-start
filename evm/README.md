@@ -1,15 +1,51 @@
-# Gora developer quick start package for Base
+# Gora Developer Quick Start package for EVM-compatible blockchains
 
 Here you will find examples and support tools for developing smart contracts with
-Gora on [Base](https://base.org/) and potentially other EVM-compatible networks.
-For general information on Gora Developer Quick Start package as well as on
-developing Algorand applications, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
-Gora Base (EVM) examples are modelled after Algorand Gora examples, but the toolset
-and execution workflow differ.
+[Gora](https://gora.io/) on [Base](https://base.org/) and potentially other
+EVM-compatible blockchains.
 
-## Using Gora on Base mainnet or Base Sepolia testnet
+Following the steps below will set you up with an environment for compiling
+and deploying included smart contract examples. You will also be able to modify
+them and experiment with them if you wish. To develop your own applications with
+Gora and deploy them to production networks, you are expected to use tools of
+your own choice. Gora does not try to bind you to any specific EVM toolchain.
 
- Gora smart contract addresses for Base mainnet and testnet networks are as follows:
+> [!IMPORTANT]
+> For developing Algorand applications and general information on Gora Developer
+> Quick Start, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
+
+## Setting up the environment
+
+- **Repository cloning and prerequisites**
+
+ - Ensure that you are running Linux by executing: `uname`. This should print
+   out: `Linux`.
+ - Check out the developer quick start repository by running:
+   ```
+   git clone https://github.com/GoraNetwork/developer-quick-start
+   ```
+ - Change to `evm` subdirectory and install NPM dependencies:
+   ```
+   cd developer-quick-start/evm
+   npm i
+   ```
+
+- **Target blockchain network**
+
+  *This package can deploy and run examples using its local built-in blockchain
+  network, or a public network such as [Base Sepolia](https://sepolia.basescan.org/).
+  We generally recommend using the local network for development and trying things
+  out. But for users who do not want to install [Docker](https://docker.io/), have
+  a funded public network account and are OK with longer deploy/test iterations,
+  the public network option may be preferable.*
+
+  - If using public network
+
+## Using a public EVM network such as Base
+
+Public network
+
+Gora smart contract addresses for Base mainnet and testnet networks are as follows:
 
  * Base mainnet: `0xd4c99F88095F32dF993030d9a6080e3BE723F617`
  * Base Sepolia testnet: `0xcB201275Cb25A589f3877912815d5f17f66D4f13`

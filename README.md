@@ -1,4 +1,4 @@
-# Gora developer quick start package
+# Gora Developer Quick Start package
 
 This repository is here to help developers writing their first blockchain
 applications using Gora decentralized oracle.
