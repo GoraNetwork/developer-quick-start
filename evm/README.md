@@ -72,10 +72,10 @@ $
 
 ### 3. Change to EVM subdirectory and install NPM dependencies
 
-Execute the following command:
+Execute the following two commands:
 ```
-cd developer-quick-start/evm
-npm i
+$ cd developer-quick-start/evm
+$ npm i
 ```
 
 You should then see something like this:
@@ -92,12 +92,12 @@ If no errors popped up, proceed to the next step.
 ###  4. Setup target blockchain network
 
 > [!IMPORTANT]
-> Examples can be run on either local built-in blockchain network, or a public
+> *Examples can be run on either local built-in blockchain network, or a public
 > network such as [Base Sepolia](https://sepolia.basescan.org/). We generally
 > recommend using the local network for development and trying things out. But
 > for users who do not want to install [Docker](https://docker.io/), have a
 > funded public network account and are OK with longer deploy/test iterations,
-> the public network option may be preferable.
+> the public network option may be preferable.*
 
 #### Option 1: Use local development blockchain network
 
@@ -123,7 +123,7 @@ software such as Metamask.
 
 The environment variables will be picked up by the example-running script
 discussed below. It should be possible to deploy example scripts to any public
-EVN network using this method. Deploying to a mainnets is, however, strongly
+EVM network using this method. Deploying to a mainnets is, however, strongly
 discouraged for security reasons.
 
 ## Running and modifying the examples
