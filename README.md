@@ -14,7 +14,8 @@ with most of the steps described here and are welcome to follow them at their
 own risk. Readers must be comfortable with using command-line tools, including
 tools for blockchain of their choice.
 
-**Fo EVM-compatible chains such as [Base](https://base.org/), please continue
+> [!IMPORTANT]
+> **For EVM-compatible chains such as [Base](https://base.org/), please continue
 [here](./evm/README.md)**
 
 ## Setting up your Gora development environment for Algorand
