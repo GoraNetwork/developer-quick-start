@@ -11,11 +11,11 @@ Here you will find:
 
 All instructions are written and tested on Linux. Mac users reported success
 with most of the steps described here and are welcome to follow them at their
-own risk. Readers must be comfortable with using command-line tools, the
-Algorand blockchain and Python programming language.
+own risk. Readers must be comfortable with using command-line tools, including
+tools for blockchain of their choice.
 
-*Users on EVM-compatible chains such as [Base](https://base.org/), please
-continue [here](./evm/README.md)*
+**Fo EVM-compatible chains such as [Base](https://base.org/), please continue
+[here](./evm/README.md)**
 
 ## Setting up your Gora development environment for Algorand
 
