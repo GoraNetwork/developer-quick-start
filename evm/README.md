@@ -36,8 +36,8 @@ on the public network you are deploying to:
 
 Once deployed, your smart contract should be able ready to issue Gora requests
 and receive Gora responses. For Base Sepolia, there is currently no fee for Gora
-requests. But for Base Mainnet, you must have some Gora tokens on the querying
-account's balance to pay for them.
+requests. For Base Mainnet, you must have some Gora tokens on the querying
+account's balance to pay for requests.
 
 > [!NOTE]
 > *To develop your own applications with Gora and to deploy them to production
@@ -103,8 +103,12 @@ discouraged for security reasons.
 
 ## Running and modifying the examples
 
-To run the included examples, open another terminal window and change
-to the same directory in which you ran the setup script above. Then run:
+If using local development environment (option 1 in step 4 above), open another
+terminal window and change to the same directory in which you started the setup
+script. For public network configurtion (option 2 in step 4), please remain in
+the same terminal session.
+
+Then execute:
 ```
 ./run_example basic
 ```
@@ -113,9 +117,10 @@ or
 ./run_example off_chain
 ```
 
-This should compile, deploy and run the examples, providing detailed information
+This should compile, deploy and run the example, providing detailed information
 on the outcome. For further details, consider [Included Solidity examples](#included-solidity-examples)
-section above.
+section above. You are welcome to modify the examples source code and try it
+repeating the step above.
 
 ## Composition of the development environment
 
