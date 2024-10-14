@@ -57,7 +57,10 @@ at your own risk, but with a non-Unix OS you will almost certainly fail.
 
 ### 2. Clone this repository
 
-Install `git` if not already done. Then run: `git clone https://github.com/GoraNetwork/developer-quick-start`.
+Install [Git](https://git-scm.com/) if not already done so, then run:
+```
+$ git clone https://github.com/GoraNetwork/developer-quick-start
+```
 You should get an output like:
 ```
 Cloning into 'developer-quick-start'...
