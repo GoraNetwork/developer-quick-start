@@ -6,7 +6,7 @@ EVM-compatible blockchains.
 
 > [!NOTE]
 > For developing Algorand applications and general information on Gora Developer
-> Quick Start, go [here](https://github.com/GoraNetwork/developer-quick-start/README.md).
+> Quick Start, go [here](../README.md).
 
 ## Setting up the environment
 
