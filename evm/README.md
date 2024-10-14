@@ -18,28 +18,26 @@ your own choice. Gora does not try to bind you to any specific EVM toolchain.
 
 - **Repository cloning and prerequisites**
 
- - Ensure that you are running Linux by executing: `uname`. This should print
-   out: `Linux`.
- - Check out the developer quick start repository by running:
-   ```
-   git clone https://github.com/GoraNetwork/developer-quick-start
-   ```
- - Change to `evm` subdirectory and install NPM dependencies:
-   ```
-   cd developer-quick-start/evm
-   npm i
-   ```
+  - Ensure that you are running Linux by executing: `uname`. This should print
+    out: `Linux`.
+  - Check out the developer quick start repository by running:
+    ```
+    git clone https://github.com/GoraNetwork/developer-quick-start
+    ```
+  - Change to `evm` subdirectory and install NPM dependencies:
+    ```
+    cd developer-quick-start/evm
+    npm i
+    ```
 
-- **Target blockchain network**
+ - **Target blockchain network**
 
-  *This package can deploy and run examples using its local built-in blockchain
-  network, or a public network such as [Base Sepolia](https://sepolia.basescan.org/).
-  We generally recommend using the local network for development and trying things
-  out. But for users who do not want to install [Docker](https://docker.io/), have
-  a funded public network account and are OK with longer deploy/test iterations,
-  the public network option may be preferable.*
-
-  - If using public network
+   *This package can deploy and run examples using its local built-in blockchain
+   network, or a public network such as [Base Sepolia](https://sepolia.basescan.org/).
+   We generally recommend using the local network for development and trying things
+   out. But for users who do not want to install [Docker](https://docker.io/), have
+   a funded public network account and are OK with longer deploy/test iterations,
+   the public network option may be preferable.*
 
 ## Using a public EVM network such as Base
 
