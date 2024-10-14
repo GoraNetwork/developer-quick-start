@@ -14,7 +14,8 @@ The following extensively commented examples are provided as hands-on
 documentation and potential templates for your own  applications:
 
  * [`example_basic.sol`](./example_basic.sol "Example app on Github") -
-   getting data from a public JSON API
+   querying arbitrary HTTP JSON endpoints
+
  * [`example_off_chain.sol`](./example_off_chain.sol "Example app on Github") -
    getting data from multiple APIs and processing it with off-chain computation
 
@@ -24,11 +25,11 @@ documentation and potential templates for your own  applications:
 > *If you are not too experienced with Solidity, or just want to run Gora examples
 > or experiment modifying them, please skip to the next section.*
 
-Consider source code examples linked above. Integrate the APIs exposed in them
-into your own smart contracts. Or deploy an example as is using your preferred
-setup, then modify it to build your app. For deployment, supply *Gora main smart
-contract address* as the first argument to the constructor, depending on the
-public network you are deploying to:
+Consider source code examples linked in the previous section. Integrate the APIs
+exposed in them into your own smart contracts, or deploy an example using your
+preferred setup, then modify it to build your app. For deployment, supply *Gora
+main smart contract address* as the first argument to the constructor, depending
+on the public network you are deploying to:
 
   * Base Sepolia: `0xcb201275cb25a589f3877912815d5f17f66d4f13`
   * Base Mainnet: `0xd4c99f88095f32df993030d9a6080e3be723f617`
@@ -52,7 +53,7 @@ compiling and deploying Gora smart contract examples.
 
 Open a terminal session and execute: `uname`. If this prints out `Linux`,
 continue to the next step. If the output is anything else, you may proceed
-at your own risk, but with a non-Unix OS it will almost certainly not work.
+at your own risk, but with a non-Unix OS you will almost certainly fail.
 
 ### 2. Clone this repository
 Run: `git clone https://github.com/GoraNetwork/developer-quick-start`.
@@ -63,7 +64,7 @@ cd developer-quick-start/evm
 npm i
 ```
 
-###  Setup target blockchain network
+###  4. Setup target blockchain network
 
 > [!IMPORTANT] 
 > Examples can be run on either local built-in blockchain network, or a public
@@ -76,8 +77,10 @@ npm i
 #### Option 1: Use local development blockchain network
 
 Run `./start_dev_env`. The script will start up, displaying log output from
-local EVM nodes and a development Gora node. It must be left running for the
-duration of your development session. To terminate it hit, Ctrl-C.
+local EVM nodes as well as local Gora node. It must be running while you deploy
+and run the example scripts. It is the default configuration for running examples,
+so no additional setup will be necessary. To terminate the script, ending the
+development session, hit, `Ctrl-C`.
    
 #### Option 2: Use a public network
 
@@ -88,15 +91,17 @@ $ export GORA_EXAMPLE_EVM_MAIN_ADDR=0XCB201275CB25A589F3877912815D5F17F66D4F13
 $ export GORA_EXAMPLE_EVM_API_URL=http://sepolia.base.org
 $ export GORA_EXAMPLE_EVM_KEY=./my_base_sepolia_private_hex_key.txt
 ```
-Where `./my_base_sepolia_private_hex_key.txt` is the path to text file
+`./my_base_sepolia_private_hex_key.txt` is the example path to a text file
 containing private key for the account you want to use for deployment,
 in hex form. It can usually be found in account tools section if wallet
 software such as Metamask.
 
-Once the environment variables are set, they will be picked up by the
-example-running script discussed below.
+The environment variables will be picked up by the example-running script
+discussed below. It should be possible to deploy example scripts to any public
+EVN network using this method. Deploying to a mainnets is, however, strongly
+discouraged for security reasons.
 
-## Running the examples
+## Running and modifying the examples
 
 To run the included examples, open another terminal window and change
 to the same directory in which you ran the setup script above. Then run:
@@ -109,23 +114,12 @@ or
 ```
 
 This should compile, deploy and run the examples, providing detailed information
-on the outcome. Examples are provided as commented Solidity source code and can
-be used as tests or templates for your own apps.
-
-### Basic example: [`example_basic.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_basic.sol "Example app on Github")
-
-Demonstrates the use of Gora for querying arbitrary HTTP endpoints responding in
-JSON format. <http://jsontest.com> free public website is used as the test data
-provider, so Internet connection is required to run this example.
-
-### Off-chain computation example: [`example_off_chain.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_off_chain.sol "Example app on Github")
-
-Demonstrates Gora's arbitrary off-chain computation capability. Essentially
-identical to the Off-chain computation example for Gora on Algorand.
+on the outcome. For further details, consider [Included Solidity examples](#included-solidity-examples)
+section above.
 
 ## Composition of the development environment
 
-Gora EVM development environment relies on the following pieces of software:
+Gora EVM local development environment relies on the following pieces of software:
 
  * Solidity compiler (`solc` binary). Used to compile examples and potentially
    developer's own code.
