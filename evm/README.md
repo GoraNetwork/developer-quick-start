@@ -5,24 +5,24 @@ Here you will find examples and support tools for developing smart contracts wit
 EVM-compatible blockchains.
 
 > [!NOTE]
-> For developing *Algorand* applications and for general information on Gora
-> Developer Quick Start, go [here](../README.md).
+> *For developing Algorand applications and for general information on Gora
+> Developer Quick Start, go [here](../README.md).*
 
 ## Included Solidity examples
 
 The following extensively commented examples are provided as hands-on
 documentation and potential templates for your own  applications:
 
- * [`example_basic.sol`](./example_basic.sol "Example app on Github")
-   - getting data from a public JSON API
- * [`example_off_chain.sol`](./example_off_chain.sol "Example app on Github")
-   - getting data from multiple APIs and processing it with off-chain computation
+ * [`example_basic.sol`](./example_basic.sol "Example app on Github") -
+   getting data from a public JSON API
+ * [`example_off_chain.sol`](./example_off_chain.sol "Example app on Github") -
+   getting data from multiple APIs and processing it with off-chain computation
 
 ## Instant start for experienced Solidity developers
 
 > [!CAUTION]
-> If you are not too experienced with Solidity, or just want to run Gora examples
-> or experiment modifying them, please skip to the next section.
+> *If you are not too experienced with Solidity, or just want to run Gora examples
+> or experiment modifying them, please skip to the next section.*
 
 Consider source code examples linked above. Integrate the APIs exposed in them
 into your own smart contracts. Or deploy an example as is using your preferred
@@ -39,91 +39,64 @@ requests. But for Base Mainnet, you must have some Gora tokens on the querying
 account's balance to pay for them.
 
 > [!NOTE]
-> To develop your own applications with Gora and to deploy them to production
+> *To develop your own applications with Gora and to deploy them to production
 > networks, you are expected to use tools of your own choice. Gora does not try
-> to bind you to any specific EVM toolchain.
+> to bind you to any specific EVM toolchain.*
 
 ## Setting up local development environment
 
 Following the steps below will set you up with a complete environment for
 compiling and deploying Gora smart contract examples.
 
-* **Repository cloning and prerequisites**
+### 1. Check operating system compatibility
 
-  * Ensure that you are running Linux by executing: `uname`. This should print
-    out: `Linux`.
-  * Check out the developer quick start repository by running:
-    ```
-    git clone https://github.com/GoraNetwork/developer-quick-start
-    ```
-  * Change to `evm` subdirectory and install NPM dependencies:
-    ```
-    cd developer-quick-start/evm
-    npm i
-    ```
+Open a terminal session and execute: `uname`. If this prints out `Linux`,
+continue to the next step. If the output is anything else, you may proceed
+at your own risk, but with a non-Unix OS it will almost certainly not work.
 
- * **Target blockchain network**
+### 2. Clone this repository
+Run: `git clone https://github.com/GoraNetwork/developer-quick-start`.
 
-   *This package can deploy and run examples using its local built-in blockchain
-   network, or a public network such as [Base Sepolia](https://sepolia.basescan.org/).
-   We generally recommend using the local network for development and trying things
-   out. But for users who do not want to install [Docker](https://docker.io/), have
-   a funded public network account and are OK with longer deploy/test iterations,
-   the public network option may be preferable.*
+### 3. Change to EVM subdirectory and install NPM dependencies
+```
+cd developer-quick-start/evm
+npm i
+```
 
-## Using a public EVM network such as Base
+###  Setup target blockchain network
 
-Public network
+> [!IMPORTANT] 
+> Examples can be run on either local built-in blockchain network, or a public
+> network such as [Base Sepolia](https://sepolia.basescan.org/). We generally
+> recommend using the local network for development and trying things out. But
+> for users who do not want to install [Docker](https://docker.io/), have a
+> funded public network account and are OK with longer deploy/test iterations,
+> the public network option may be preferable.
 
-Gora smart contract addresses for Base mainnet and testnet networks are as follows:
+#### Option 1: Use local development blockchain network
 
- * Base mainnet: `0xd4c99F88095F32dF993030d9a6080e3BE723F617`
- * Base Sepolia testnet: `0xcB201275Cb25A589f3877912815d5f17f66D4f13`
+Run `./start_dev_env`. The script will start up, displaying log output from
+local EVM nodes and a development Gora node. It must be left running for the
+duration of your development session. To terminate it hit, Ctrl-C.
+   
+#### Option 2: Use a public network
 
- For deployment to public blockchain networks, Gora does not require any specific
- toolchain. Smart contract addresses listed above and the knowledge of basic
- APIs given in the examples is all you need to start using Gora with EVM
- development tools of your choice.
+Public network configuration is set via environment variables. For example,
+to use Base Sepolia you would execute:
+```
+$ export GORA_EXAMPLE_EVM_MAIN_ADDR=0XCB201275CB25A589F3877912815D5F17F66D4F13
+$ export GORA_EXAMPLE_EVM_API_URL=http://sepolia.base.org
+$ export GORA_EXAMPLE_EVM_KEY=./my_base_sepolia_private_hex_key.txt
+```
+Where `./my_base_sepolia_private_hex_key.txt` is the path to text file
+containing private key for the account you want to use for deployment,
+in hex form. It can usually be found in account tools section if wallet
+software such as Metamask.
 
- To learn how to use Gora from your smart contracts, it is best to read
- extensively commented Solidity examples in this repository:
+Once the environment variables are set, they will be picked up by the
+example-running script discussed below.
 
- * [`example_basic.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_basic.sol "Example app on Github")
- * [`example_off_chain.sol`](https://github.com/GoraNetwork/developer-quick-start/blob/main/evm/example_off_chain.sol "Example app on Github")
-
- You should then be able to integrate Gora calls and response handling into your
- smart contracts with ease. If you would like to run the examples or debug your
- Gora applications locally, read on.
-
-## Setting up your Gora EVM development environment
-
- * Check the prerequisites:
-   ```
-   uname
-   ```
-   should print out `Linux`. Make sure you have [Docker](https://docker.com/).
-   installed. Your Libc version version must be at least `2.32` which can be
-   checked by executing `/lib/libc.so.6`. If it is older, please upgrade your
-   OS.
-
- * Check out the developer quick start repository by running:
-   ```
-   git clone https://github.com/GoraNetwork/developer-quick-start
-   ```
-
- * Change to EVM subdirectory and install the NPM dependencies:
-   ```
-   cd developer-quick-start/evm
-   npm i
-   ```
- * Start the development environment by running the command below. It must
-   be left running for the duration of your development session. To terminate
-   it hit, Ctrl-C.
-   ```
-   ./start_dev_env
-   ```
-
-## Running examples or your own code
+## Running the examples
 
 To run the included examples, open another terminal window and change
 to the same directory in which you ran the setup script above. Then run:
