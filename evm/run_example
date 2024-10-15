@@ -136,7 +136,7 @@ async function runExample(apiUrl, name, network) {
   const txnReceipt = await (await exampleContract.makeGoraRequest()).wait();
   console.log(`Done, round "${txnReceipt.blockNumber}", txn "${txnReceipt.hash}"`);
 
-  const timeout = process.env.GORA_EXAMPLE_EVM_TIMEOUT || 60;
+  const timeout = process.env.GORA_EXAMPLE_EVM_TIMEOUT || 60000;
   const timeoutInterval = 1000;
   for (let elapsed = 0; elapsed <= timeout; elapsed += timeoutInterval) {
     if (createdReqId)
