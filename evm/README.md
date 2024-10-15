@@ -115,8 +115,8 @@ development session, hit, `Ctrl-C`.
 Public network configuration is set via environment variables. For example,
 to use Base Sepolia you would execute:
 ```
-$ export GORA_EXAMPLE_EVM_MAIN_ADDR=0XCB201275CB25A589F3877912815D5F17F66D4F13
-$ export GORA_EXAMPLE_EVM_API_URL=http://sepolia.base.org
+$ export GORA_EXAMPLE_EVM_MAIN_ADDR=0xcb201275cb25a589f3877912815d5f17f66d4f13
+$ export GORA_EXAMPLE_EVM_API_URL=https://sepolia.base.org
 $ export GORA_EXAMPLE_EVM_KEY=./my_base_sepolia_private_hex_key.txt
 ```
 `./my_base_sepolia_private_hex_key.txt` is the example path to a text file
