@@ -54,7 +54,10 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
     provider = signer.provider;
   else {
     console.log("EVM API endpoint:", apiUrl);
-    provider = new Ethers.JsonRpcProvider(apiUrl);
+    provider = new Ethers.JsonRpcProvider(apiUrl, null, {
+      pollingInterval: 1000,
+      polling: true,
+    });
   }
   console.log("At block:", await provider.getBlockNumber());
 

@@ -83,6 +83,8 @@ async function connectToEvmNode(url) {
     batchMaxCount: 1,
     batchStallTime: 0,
     staticNetwork: true,
+    polling: true,
+    pollingInterval: 1000,
   });
 
   let rawSigner;
