@@ -7,6 +7,9 @@ import re
 import json
 import subprocess
 
+if "GORA_DEV_VER" not in os.environ:
+    os.environ["GORA_DEV_VER"] = "latest-dqs"
+
 """
 Check if Algod daemon is running on given localhost port.
 """
