@@ -1,3 +1,9 @@
+// This Gora example program demonstrates the use of Gora off-chain computation
+// API. It takes a British postcode as a parameter, queries two data sources,
+// building their URLs dynamically, and returns current air temperature in the
+// area of said postcode. This requires two data-retrival operations: getting
+// postcode geographical coordinates and querying current weather at them.
+
 #include "gora_off_chain.h"
 
 GORA_DECLARE_FUNC_MAIN
