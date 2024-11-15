@@ -87,6 +87,17 @@ async function connectToEvmNode(url) {
     pollingInterval: 1000,
   });
 
+   // Work around occasional wrong block range parameter order in ethers.js
+   const getLogsOrig = provider.getLogs;
+   provider.getLogs = filterOrig => {
+     const filter = { ...filterOrig };
+     if (filter.fromBlock > filter.toBlock) {
+       [ filter.fromBlock, filter.toBlock ]
+       = [ filter.toBlock, filter.fromBlock ];
+     }
+     return getLogsOrig.call(provider, filter);
+   };
+
   let rawSigner;
   if (process.env.GORA_EXAMPLE_EVM_KEY) {
     const key = process.env.GORA_EXAMPLE_EVM_KEY;
