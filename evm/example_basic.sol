@@ -44,7 +44,7 @@ contract GoraExample {
     address exampleDestAddr = address(this);
 
     bytes memory reqSig = abi.encodeWithSignature(
-      goraRequestSigSrc, exampleUrl, exampleValueExpr,
+      goraRequestSigSrc, exampleUrl, exampleValueExpr
     );
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
     if (!isOk)
