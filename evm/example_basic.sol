@@ -9,28 +9,13 @@ pragma experimental ABIEncoderV2;
 contract GoraExample {
 
   // Gora request method signature.
-  string constant goraRequestSigSrc
-    = "request(uint8,bytes,bytes,address,string,bytes,uint256)";
+  string constant goraRequestSigSrc = "request(string,bytes,string)";
 
   // URL from which to fetch oracle data.
-  string constant exampleUrl = "http://echo.jsontest.com/testfield/testvalue";
+  string constant exampleUrl = "gora://classic/1";
 
   // Expression to extract oracle value from the response.
-  string constant exampleValueExpr = "jsonpath:$.testfield";
-
-  // Destination smart contract method name to call with the response.
-  string constant exampleDestMethod = "receiveGoraResponse";
-
-  // Arbitrary piece of data to pass to the destination method.
-  string constant exampleUserData = "my user data";
-
-  // Size of EVM "gas tank" that will be created with the request, in bytes.
-  // Gas tank is an array variable that is emptied before calling the
-  // destination contract, providing the transaction with additional gas.
-  // The size of gas tank required is best determined experimentally.
-  // The use of gas tank is optional, you are welcome to implement one
-  // yourself in the destination contract..
-  uint exampleGasTankSize = 10;
+  string constant exampleValueExpr = "";
 
   address goraAddr; // Gora smart contract address
   bytes public lastValue; // last value received from Gora
@@ -58,9 +43,8 @@ contract GoraExample {
     // Call this same contract as the destination one.
     address exampleDestAddr = address(this);
 
-    bytes memory reqSig = abi.encodeWithSignature(goraRequestSigSrc,
-      2, exampleUrl, exampleValueExpr, exampleDestAddr, exampleDestMethod,
-      exampleUserData, exampleGasTankSize
+    bytes memory reqSig = abi.encodeWithSignature(
+      goraRequestSigSrc, exampleUrl, exampleValueExpr,
     );
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
     if (!isOk)
@@ -76,9 +60,7 @@ contract GoraExample {
   }
 
   // Receive a response from Gora to the above request.
-  function receiveGoraResponse(bytes32 reqId, uint256 reqRound, address requester,
-                               bytes calldata value, bytes calldata userData,
-                               uint256 srcErrors) public {
+  function __goraExecutorResponse(bytes32 reqId, bytes calldata value) external {
 
     require(msg.sender == goraAddr, "sender is not Gora main contract");
     DEBUG("Gora response received", 0, bytes32ToBytes(reqId));
