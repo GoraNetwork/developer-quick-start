@@ -44,7 +44,7 @@ contract GoraExample {
     address exampleDestAddr = address(this);
 
     bytes memory reqSig = abi.encodeWithSignature(
-      goraRequestSigSrc, exampleUrl, exampleValueExpr
+      goraRequestSigSrc, exampleUrl, exampleValueExpr, ""
     );
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
     if (!isOk)
@@ -60,7 +60,7 @@ contract GoraExample {
   }
 
   // Receive a response from Gora to the above request.
-  function __goraExecutorResponse(bytes32 reqId, bytes calldata value) external {
+  function response(bytes32 reqId, bytes calldata value) external {
 
     require(msg.sender == goraAddr, "sender is not Gora main contract");
     DEBUG("Gora response received", 0, bytes32ToBytes(reqId));
