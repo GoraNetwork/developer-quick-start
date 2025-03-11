@@ -31,19 +31,10 @@ contract GoraExampleOffChain {
   // Make a request to Gora using the above configuration.
   function makeGoraRequest() payable public {
 
-    bytes[] memory args = new bytes[](1);
-    args[0]= "sm14hp"; // UK postcode of the area queried
-
-    uint16 apiVer = 1;
-    uint16 specType = 0; // 1 - in-place binary WASM
-
-    bytes memory srcArg = abi.encode(apiVer, specType, wasmBody, args);
     bytes memory reqSig = abi.encodeWithSignature(
-      "request(uint8,bytes,bytes,address,string,bytes,uint256)", 3,
-      "gora://offchain/inline", srcArg, address(this), "receiveGoraResponse",
-      "", 0
+      "request(string,bytes,string)",
+      "gora://offchain/v0/basic?arg=sm14hp", wasmBody, ""
     );
-
     (bool isOk, bytes memory res) = goraAddr.call(reqSig);
     if (!isOk)
       revert("Unable to make Gora request");
@@ -58,9 +49,7 @@ contract GoraExampleOffChain {
   }
 
   // Receive a response from Gora to the above request.
-  function receiveGoraResponse(bytes32 reqId, uint256 reqRound, address requester,
-                               bytes calldata value, bytes calldata userData,
-                               uint256 srcErrors) public {
+  function response(bytes32 reqId, bytes calldata value) external {
 
     require(msg.sender == goraAddr, "sender is not Gora main contract");
     DEBUG("Gora response received", 0, bytes32ToBytes(reqId));
@@ -69,5 +58,5 @@ contract GoraExampleOffChain {
     lastValue = value;
     lastReqId = reqId;
     emit ReceiveResponse(reqId, value);
- }
+  }
 }
