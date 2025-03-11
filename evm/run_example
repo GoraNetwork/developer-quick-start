@@ -52,25 +52,10 @@ async function setupGoraContract(signer, network) {
   const addr = getMainContractAddr(network);
   if (!addr)
     throw `Unable to determine Gora main contract address for network "${network}"`;
+
   console.log(`Using address "${addr}" for Gora main contract`);
   const [ abi ] = loadContract("main");
   const res = new Ethers.Contract(addr, abi, signer);
-
-  // Check that main contract is really at this address. It will not be if
-  // blockchain was restarted without contract redeployment and .addr file update.
-  let goraName;
-  let err;
-  try {
-    goraName = await res.goraName();
-  }
-  catch (e) {
-    if (e.code != "BAD_DATA" || e.value != "0x")
-      err = e.message;
-  }
-  if (err)
-    throw "Error checking Gora main contract address: " + err;
-  if (goraName != "main")
-    throw `Gora main contract not found at "${addr}"`;
 
   await enableContractLogs(res, "main");
   return res;
