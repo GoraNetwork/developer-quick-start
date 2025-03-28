@@ -126,7 +126,7 @@ function deploy_gora_contracts {
   GORA_DEV_EVM_DEPLOY_INIT_ARG_5=$MASTER_ADDR \
   GORA_DEV_EVM_DEPLOY_INIT_ARG_6=0 \
   GORA_DEV_EVM_DEPLOY_INIT_ARG_7=0 \
-  GORA_DEV_EVM_DEPLOY_INIT_ARG_8=0
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_8=0 \
     ./deploy $GETH_URL_MASTER main main_$CHAIN.addr main.sol:Gora
 }
 
