@@ -32,7 +32,7 @@ function loadContract(name, compiled, solName) {
   const abi = typeof contractInfo.abi == "string"
               ? JSON.parse(contractInfo.abi) : contractInfo.abi;
 
-  const binHex = contractInfo.bin || contractInfo.bytecode.object;
+  const binHex = contractInfo.bin || contractInfo.bytecode.object.slice(2);
   const bin = Buffer.from(binHex, "hex");
   return [ abi, bin ];
 }
