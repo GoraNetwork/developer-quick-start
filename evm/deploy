@@ -52,6 +52,18 @@ async function mintMaybe(name, contract) {
   await (await contract.mint(BigInt(amount) * 10n**decimals)).wait();
 }
 
+// Get arguments for constructor or initialized from environment variables.
+function getArgsFromEnv(id) {
+
+  const res = [];
+  for (const varName in process.env) {
+    const prefix = `GORA_DEV_EVM_DEPLOY_${id}_ARG_`;
+    if (varName.startsWith(prefix))
+      res[Number(varName.substr(prefix.length))] = process.env[varName];
+  }
+  return res;
+}
+
 // Deploy a compiled smart contract.
 async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args }) {
 
@@ -84,21 +96,21 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   const balance = await provider.getBalance(signerAddr);
   console.log(`Signer "${signerAddr}" with balance "${balance}"`);
 
-  const constrArgs = args || [];
-  for (const varName in process.env) {
-    const prefix = "GORA_DEV_EVM_DEPLOY_CONSTR_ARG_";
-    if (varName.startsWith(prefix))
-      constrArgs[Number(varName.substr(prefix.length))] = process.env[varName];
-  }
-
   solName ||= name + ".sol";
   const [ abi, bin ] = loadContract(name, compiled, solName);
   await TimersPromises.setTimeout(1000);
 
+  const constrArgs = getArgsFromEnv("CONSTR");
   console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
   await contract.waitForDeployment();
+
+  const initArgs = getArgsFromEnv("INIT");
+  if (initArgs.length) {
+    console.log(`Initializing with ${initArgs.length || 'no'} argument(s)`);
+    await contract.initialize(...initArgs);
+  }
 
   const addr = await contract.getAddress();
   console.log("Deployed to:", addr);

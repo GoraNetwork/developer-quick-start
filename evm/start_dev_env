@@ -118,21 +118,16 @@ function deploy_gora_contracts {
   GORA_DEV_EVM_DEPLOY_CONSTR_ARG_2='GORA' \
     ./deploy $GETH_URL_MASTER token token_$MASTER_CHAIN.addr GoraToken.sol
 
-  for CHAIN_ROLE in MASTER; do
-
-    GETH_CHAIN_VAR="${CHAIN_ROLE}_CHAIN";
-    CHAIN=${!GETH_CHAIN_VAR}
-    if [ ! $CHAIN ]; then
-      continue;
-    fi
-
-    export GORA_DEV_EVM_DEPLOY_KEY="./master_key_$CHAIN.txt"
-    GETH_URL_VAR="GETH_URL_$CHAIN_ROLE"
-
-    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_0=$(cat ./token_$CHAIN.addr) \
-    GORA_DEV_EVM_DEPLOY_CONSTR_ARG_1=0 \
-      ./deploy ${!GETH_URL_VAR} main main_$CHAIN.addr main.sol:Gora
-done
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_0=$(cat ./token_$MASTER_CHAIN.addr) \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_1=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_2=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_3=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_4=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_5=$MASTER_ADDR \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_6=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_7=0 \
+  GORA_DEV_EVM_DEPLOY_INIT_ARG_8=0
+    ./deploy $GETH_URL_MASTER main main_$CHAIN.addr main.sol:Gora
 }
 
 echo 'Preparing Gora local EVM development environment'
