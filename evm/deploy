@@ -5,11 +5,13 @@ const Ethers = require("ethers");
 const Fs = require("fs");
 const TimersPromises = require("timers/promises");
 
+const contractsPath = "./contracts/evm/basic";
+
 // Load and return a compiled smart contract in combined JSON format.
 function loadContract(name, compiled, solName) {
 
   if (!compiled) {
-    const file = name + ".compiled";
+    const file = `${contractsPath}/${name}.compiled`;
     console.log("Reading compiled contract (combined JSON):", file);
     compiled = JSON.parse(Fs.readFileSync(file));
   }
@@ -109,13 +111,13 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   const initArgs = getArgsFromEnv("INIT");
   if (initArgs.length) {
     console.log(`Initializing with ${initArgs.length || 'no'} argument(s)`);
-    await contract.initialize(...initArgs);
+    await (await contract.initialize(...initArgs)).wait();
   }
 
   const addr = await contract.getAddress();
   console.log("Deployed to:", addr);
 
-  addrFile ||= name + ".addr";
+  addrFile ||= `./${contractsPath}/${name}.addr`;
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
 
