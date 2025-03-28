@@ -15,17 +15,23 @@ function loadContract(name, compiled, solName) {
   }
 
   solName ||= name + ".sol";
-  const findFunc = solName.indexOf(":") > -1 // contract name included?
-                   ? x => x == solName
-                   : x => x.match(`(^|/)${solName}:`);
-  const nameKey = Object.keys(compiled.contracts).find(findFunc);
-  if (!nameKey)
-    throw `Smart contract "${solName}" not found in the JSON file`;
+  let contractInfo;
 
-  const contractInfo = compiled.contracts[nameKey];
+  if (compiled.contracts) {
+    const findFunc = solName.indexOf(":") > -1 // contract class name included?
+                     ? x => x == solName
+                     : x => x.match(`(^|/)${solName}:`);
+    const nameKey = Object.keys(compiled.contracts).find(findFunc);
+    contractInfo = compiled.contracts[nameKey];
+  }
+  else
+    contractInfo = compiled;
+
   const abi = typeof contractInfo.abi == "string"
               ? JSON.parse(contractInfo.abi) : contractInfo.abi;
-  const bin = Buffer.from(contractInfo.bin, "hex");
+
+  const binHex = contractInfo.bin || contractInfo.bytecode.object;
+  const bin = Buffer.from(binHex, "hex");
   return [ abi, bin ];
 }
 
