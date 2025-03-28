@@ -102,7 +102,7 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   const [ abi, bin ] = loadContract(name, compiled, solName);
   await TimersPromises.setTimeout(1000);
 
-  const constrArgs = getArgsFromEnv("CONSTR");
+  const constrArgs = args || getArgsFromEnv("CONSTR");
   console.log(`Deploying "${solName}" with ${constrArgs.length || 'no'} argument(s)`);
   const factory = new Ethers.ContractFactory(abi, bin, signer);
   const contract = await factory.deploy(...constrArgs);
