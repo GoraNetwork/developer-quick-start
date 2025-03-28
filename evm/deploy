@@ -117,7 +117,7 @@ async function deploy({ apiUrl, name, solName, addrFile, compiled, signer, args 
   const addr = await contract.getAddress();
   console.log("Deployed to:", addr);
 
-  addrFile ||= `./${contractsPath}/${name}.addr`;
+  addrFile ||= name + ".addr";
   console.log("Writing address to:", addrFile);
   Fs.writeFileSync(addrFile, addr);
 
